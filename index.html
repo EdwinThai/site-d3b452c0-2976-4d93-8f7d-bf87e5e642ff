@@ -33,51 +33,42 @@
 
   <!-- HERO -->
   <section class="hero" id="hero">
-    <div class="hero-image-wrap">
-      <img
-        src="https://images.unsplash.com/photo-1600948836101-f9ffda59d250?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8bW9kZXJuJTIwaGFpciUyMHNhbG9uJTIwaW50ZXJpb3J8ZW58MHwwfHx8MTc4NjA0Mzc1NXww&ixlib=rb-4.1.0&q=80&w=1080"
-        alt="Salongsinteriör"
-        class="hero-img"
-        loading="eager"
-      >
-      <div class="hero-gradient"></div>
-    </div>
-    <div class="hero-content fade-in-element">
-      <p class="hero-eyebrow">Frisörsalong i Ulricehamn</p>
-      <h1>Ditt hår,<br>din stil.</h1>
-      <p class="hero-lead">Välkommen till Ellesse – en salong där du känns igen och tas om hand, varje gång.</p>
-      <div class="hero-cta-group">
-        <!--FIELD:phone-->
-        <a href="tel:0321-12377" class="btn btn-primary">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          Ring och boka: 0321-123 77
-        </a>
-        <!--/FIELD:phone-->
-        <a href="#tjanster" class="btn btn-secondary">Våra tjänster</a>
+    <div class="container hero-grid">
+      <div class="hero-copy fade-in-element">
+        <p class="eyebrow">Frisörsalong i Ulricehamn</p>
+        <h1>Ditt hår,<br>din stil.</h1>
+        <p class="lead">Välkommen till Ellesse – en salong där du känns igen och tas om hand, varje gång.</p>
+        <div class="cta-row">
+          <!--FIELD:phone-->
+          <a href="tel:032112377" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Ring och boka: 0321-123 77
+          </a>
+          <!--/FIELD:phone-->
+          <a href="#tjanster" class="btn btn-outline">Våra tjänster</a>
+        </div>
       </div>
-      <p class="hero-photo-credit">Foto av <a href="https://unsplash.com/@gregtrow" target="_blank" rel="noopener">Greg Trowman</a> på <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a></p>
-    </div>
-    <div class="hero-curve">
-      <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="#F5F0E8"/>
-      </svg>
+      <div class="hero-visual">
+        <div class="hero-blob" aria-hidden="true"></div>
+        <div class="hero-frame fade-in-element">
+          <img
+            src="https://images.unsplash.com/photo-1626383137804-ff908d2753a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
+            alt="Ljus och varm salongsinteriör med stylingstolar"
+            class="hero-img"
+            loading="eager"
+          >
+        </div>
+        <p class="photo-credit">Foto av <a href="https://unsplash.com/@giorgiotrovato" target="_blank" rel="noopener">Giorgio Trovato</a> på <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a></p>
+      </div>
     </div>
   </section>
 
   <!-- OM OSS -->
-  <section class="section-om" id="om">
-    <div class="container om-inner">
-      <div class="om-text fade-in-element">
-        <span class="section-label">Om oss</span>
-        <h2>En salong du hittar hem till</h2>
-        <p>Ellesse finns på Storgatan 15 i hjärtat av Ulricehamn. Här handlar det inte om att pressa igenom så många kunder som möjligt – vi tar oss tid, lyssnar på dig och levererar resultat du är nöjd med.</p>
-        <p>Vi arbetar med klippning, färgning, hårvård, extensions och trendiga frisyrer. Oavsett om du vet exakt vad du vill eller behöver hjälp att hitta din stil, är du välkommen.</p>
-        <!--FIELD:phone-->
-        <a href="tel:0321-12377" class="btn btn-primary btn-inline">Ring oss – 0321-123 77</a>
-        <!--/FIELD:phone-->
-      </div>
-      <div class="om-image-wrap fade-in-element">
-        <div class="om-image-frame">
+  <section class="section section-paper" id="om">
+    <div class="container om-grid">
+      <div class="om-visual fade-in-element">
+        <div class="om-blob" aria-hidden="true"></div>
+        <div class="om-frame">
           <img
             src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMHNhbG9uJTIwaGFpcmN1dCUyMHN0eWxpbmd8ZW58MHwwfHx8MTc4NzczNzAzOHww&ixlib=rb-4.1.0&q=80&w=1080"
             alt="Klippning på Ellesse"
@@ -85,124 +76,130 @@
             loading="lazy"
           >
         </div>
-        <div class="om-image-accent"></div>
+        <div class="om-badge" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+        </div>
+      </div>
+      <div class="om-text fade-in-element">
+        <p class="eyebrow">Om oss</p>
+        <h2>En salong du hittar hem till</h2>
+        <p>Ellesse finns på Storgatan 15 i hjärtat av Ulricehamn. Här handlar det inte om att pressa igenom så många kunder som möjligt – vi tar oss tid, lyssnar på dig och levererar resultat du är nöjd med.</p>
+        <p>Vi arbetar med klippning, färgning, hårvård, extensions och trendiga frisyrer. Oavsett om du vet exakt vad du vill eller behöver hjälp att hitta din stil, är du välkommen.</p>
+        <!--FIELD:phone-->
+        <a href="tel:032112377" class="btn btn-primary btn-inline">Ring oss – 0321-123 77</a>
+        <!--/FIELD:phone-->
       </div>
     </div>
   </section>
 
   <!-- TJÄNSTER -->
-  <section class="section-tjanster" id="tjanster">
-    <div class="tjanster-curve-top">
-      <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,40 C480,0 960,80 1440,40 L1440,0 L0,0 Z" fill="#F5F0E8"/>
-      </svg>
-    </div>
+  <section class="section section-services" id="tjanster">
     <div class="container">
       <div class="section-heading fade-in-element">
-        <span class="section-label">Vad vi gör</span>
+        <p class="eyebrow">Vad vi gör</p>
         <h2>Tjänster</h2>
-        <p class="section-sub">Vi erbjuder ett brett utbud av frisörtjänster – alltid med fokus på kvalitet och omsorg om just ditt hår.</p>
+        <p class="lead section-sub">Vi erbjuder ett brett utbud av frisörtjänster – alltid med fokus på kvalitet och omsorg om just ditt hår.</p>
       </div>
       <!--FIELD:services-->
-      <div class="tjanster-grid">
+      <div class="services-grid">
 
         <!-- Klippning -->
-        <article class="flip-card fade-in-element">
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-              <img
-                src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMHNhbG9uJTIwaGFpcmN1dCUyMHN0eWxpbmd8ZW58MHwwfHx8MTc4NzczNzAzOHww&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Klippning"
-                loading="lazy"
-              >
-              <div class="flip-card-label">Klippning</div>
+        <article class="service-card fade-in-element">
+          <div class="service-media">
+            <img
+              src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMHNhbG9uJTIwaGFpcmN1dCUyMHN0eWxpbmd8ZW58MHwwfHx8MTc4NzczNzAzOHww&ixlib=rb-4.1.0&q=80&w=1080"
+              alt="Klippning"
+              loading="lazy"
+            >
+            <div class="service-icon-chip" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
             </div>
-            <div class="flip-card-back">
-              <h3>Klippning</h3>
-              <p>Oavsett om det är en enkel trimning eller en hel omvandling tar vi oss tid för att ge dig den frisyr du vill ha.</p>
-              <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-              <p class="card-credit">Foto: <a href="https://unsplash.com/@awcreativeut" target="_blank" rel="noopener">Adam Winger</a>, Unsplash</p>
-            </div>
+          </div>
+          <div class="service-body">
+            <h3>Klippning</h3>
+            <p>Oavsett om det är en enkel trimning eller en hel omvandling tar vi oss tid för att ge dig den frisyr du vill ha.</p>
+            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
+            <p class="card-credit">Foto: <a href="https://unsplash.com/@awcreativeut" target="_blank" rel="noopener">Adam Winger</a>, Unsplash</p>
           </div>
         </article>
 
         <!-- Hårvård -->
-        <article class="flip-card fade-in-element">
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-              <img
-                src="https://images.unsplash.com/photo-1634449571010-02389ed0f9b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMGNhcmUlMjB0cmVhdG1lbnQlMjBzYWxvbnxlbnwwfDB8fHwxNzg4NjA4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Hårvård"
-                loading="lazy"
-              >
-              <div class="flip-card-label">Hårvård</div>
+        <article class="service-card fade-in-element">
+          <div class="service-media">
+            <img
+              src="https://images.unsplash.com/photo-1634449571010-02389ed0f9b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMGNhcmUlMjB0cmVhdG1lbnQlMjBzYWxvbnxlbnwwfDB8fHwxNzg4NjA4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080"
+              alt="Hårvård"
+              loading="lazy"
+            >
+            <div class="service-icon-chip" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69s-5.5 6.13-5.5 10.31a5.5 5.5 0 0 0 11 0c0-4.18-5.5-10.31-5.5-10.31z"/></svg>
             </div>
-            <div class="flip-card-back">
-              <h3>Hårvård</h3>
-              <p>Behandlingar som ger ditt hår ny styrka och lyster – skräddarsydda efter just dina behov.</p>
-              <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-              <p class="card-credit">Foto: <a href="https://unsplash.com/@lindsayrc81" target="_blank" rel="noopener">Lindsay Cash</a>, Unsplash</p>
-            </div>
+          </div>
+          <div class="service-body">
+            <h3>Hårvård</h3>
+            <p>Behandlingar som ger ditt hår ny styrka och lyster – skräddarsydda efter just dina behov.</p>
+            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
+            <p class="card-credit">Foto: <a href="https://unsplash.com/@lindsayrc81" target="_blank" rel="noopener">Lindsay Cash</a>, Unsplash</p>
           </div>
         </article>
 
         <!-- Extensions -->
-        <article class="flip-card fade-in-element">
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-              <img
-                src="https://images.unsplash.com/photo-1785456463151-623876d5b7af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMGV4dGVuc2lvbnMlMjBzYWxvbnxlbnwwfDB8fHwxNzg4NjA4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Extensions"
-                loading="lazy"
-              >
-              <div class="flip-card-label">Extensions</div>
+        <article class="service-card fade-in-element">
+          <div class="service-media">
+            <img
+              src="https://images.unsplash.com/photo-1785456463151-623876d5b7af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMGV4dGVuc2lvbnMlMjBzYWxvbnxlbnwwfDB8fHwxNzg4NjA4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080"
+              alt="Extensions"
+              loading="lazy"
+            >
+            <div class="service-icon-chip" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v4M3 5h4M6 17v4M4 19h4M13 3l1.5 4.5L19 9l-4.5 1.5L13 15l-1.5-4.5L7 9l4.5-1.5L13 3z"/></svg>
             </div>
-            <div class="flip-card-back">
-              <h3>Extensions</h3>
-              <p>Längd, volym och naturligt utseende – vi applicerar extensions med omsorg och precision.</p>
-              <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-              <p class="card-credit">Foto: <a href="https://unsplash.com/@yovankaloriasalon" target="_blank" rel="noopener">Yovanka Loria Salon</a>, Unsplash</p>
-            </div>
+          </div>
+          <div class="service-body">
+            <h3>Extensions</h3>
+            <p>Längd, volym och naturligt utseende – vi applicerar extensions med omsorg och precision.</p>
+            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
+            <p class="card-credit">Foto: <a href="https://unsplash.com/@yovankaloriasalon" target="_blank" rel="noopener">Yovanka Loria Salon</a>, Unsplash</p>
           </div>
         </article>
 
         <!-- Färgning -->
-        <article class="flip-card fade-in-element">
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-              <img
-                src="https://images.unsplash.com/photo-1617391654484-2894196c2cc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMGNvbG9yaW5nJTIwc2Fsb258ZW58MHwwfHx8MTc4NzczNzA0MHww&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Färgning"
-                loading="lazy"
-              >
-              <div class="flip-card-label">Färgning</div>
+        <article class="service-card fade-in-element">
+          <div class="service-media">
+            <img
+              src="https://images.unsplash.com/photo-1617391654484-2894196c2cc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMGNvbG9yaW5nJTIwc2Fsb258ZW58MHwwfHx8MTc4NzczNzA0MHww&ixlib=rb-4.1.0&q=80&w=1080"
+              alt="Färgning"
+              loading="lazy"
+            >
+            <div class="service-icon-chip" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.4-.3-.4-.5-.8-.5-1.4 0-1.1.9-2 2-2h2.4c2 0 3.6-1.6 3.6-3.6C21 6.6 17 2 12 2z"/></svg>
             </div>
-            <div class="flip-card-back">
-              <h3>Färgning</h3>
-              <p>Färgning, slingor och balayage – vi hittar rätt ton för dig och tar hand om håret från rot till spets.</p>
-              <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-              <p class="card-credit">Foto: <a href="https://unsplash.com/@primipil" target="_blank" rel="noopener">Maksim Chernishev</a>, Unsplash</p>
-            </div>
+          </div>
+          <div class="service-body">
+            <h3>Färgning</h3>
+            <p>Färgning, slingor och balayage – vi hittar rätt ton för dig och tar hand om håret från rot till spets.</p>
+            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
+            <p class="card-credit">Foto: <a href="https://unsplash.com/@primipil" target="_blank" rel="noopener">Maksim Chernishev</a>, Unsplash</p>
           </div>
         </article>
 
         <!-- Trendiga frisyrer -->
-        <article class="flip-card fade-in-element">
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-              <img
-                src="https://images.unsplash.com/photo-1762331207337-42c09537103d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8dHJlbmR5JTIwbW9kZXJuJTIwaGFpcnN0eWxlcyUyMGZhc2hpb258ZW58MHwwfHx8MTc4ODYwODMwNHww&ixlib=rb-4.1.0&q=80&w=1080"
-                alt="Trendiga frisyrer"
-                loading="lazy"
-              >
-              <div class="flip-card-label">Trendiga frisyrer</div>
+        <article class="service-card fade-in-element">
+          <div class="service-media">
+            <img
+              src="https://images.unsplash.com/photo-1762331207337-42c09537103d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8dHJlbmR5JTIwbW9kZXJuJTIwaGFpcnN0eWxlcyUyMGZhc2hpb258ZW58MHwwfHx8MTc4ODYwODMwNHww&ixlib=rb-4.1.0&q=80&w=1080"
+              alt="Trendiga frisyrer"
+              loading="lazy"
+            >
+            <div class="service-icon-chip" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6L22 9.3l-5 4.8L18.2 22 12 18.3 5.8 22 7 14.1l-5-4.8 7.1-.7L12 2z"/></svg>
             </div>
-            <div class="flip-card-back">
-              <h3>Trendiga frisyrer</h3>
-              <p>Vi håller oss uppdaterade med det senaste inom hårtrender – så att du kan göra det med.</p>
-              <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-              <p class="card-credit">Foto: <a href="https://unsplash.com/@zulfugarkarimov" target="_blank" rel="noopener">Zulfugar Karimov</a>, Unsplash</p>
-            </div>
+          </div>
+          <div class="service-body">
+            <h3>Trendiga frisyrer</h3>
+            <p>Vi håller oss uppdaterade med det senaste inom hårtrender – så att du kan göra det med.</p>
+            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
+            <p class="card-credit">Foto: <a href="https://unsplash.com/@zulfugarkarimov" target="_blank" rel="noopener">Zulfugar Karimov</a>, Unsplash</p>
           </div>
         </article>
 
@@ -213,10 +210,10 @@
   </section>
 
   <!-- ÖPPETTIDER -->
-  <section class="section-oppettider" id="oppettider">
-    <div class="container oppettider-inner">
-      <div class="oppettider-content fade-in-element">
-        <span class="section-label light">Hitta oss</span>
+  <section class="section section-paper" id="oppettider">
+    <div class="container oppettider-grid">
+      <div class="hours-card fade-in-element">
+        <p class="eyebrow">Hitta oss</p>
         <h2>Öppettider</h2>
         <!--FIELD:opening_hours-->
         <table class="hours-table">
@@ -233,7 +230,7 @@
         <!--/FIELD:opening_hours-->
         <div class="open-status" id="open-status" aria-live="polite"></div>
       </div>
-      <div class="oppettider-map fade-in-element">
+      <div class="map-card fade-in-element">
         <!--FIELD:address-->
         <iframe
           src="https://maps.google.com/maps?q=Storgatan+15,+523+30+Ulricehamn&output=embed"
@@ -259,40 +256,37 @@
   </section>
 
   <!-- BOKA TID / CTA -->
-  <section class="section-boka" id="boka">
-    <div class="boka-wave-top">
-      <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,0 C360,80 1080,0 1440,60 L1440,0 L0,0 Z" fill="#D8D8C0"/>
-      </svg>
-    </div>
+  <section class="section section-accent" id="boka">
     <div class="container boka-inner fade-in-element">
-      <span class="section-label light">Redo?</span>
-      <h2>Boka din tid</h2>
-      <p>Vi tar emot bokningar via telefon. Ring oss under öppettiderna så ordnar vi en tid som passar dig.</p>
+      <p class="eyebrow eyebrow-invert">Redo?</p>
+      <h2 class="h-invert">Boka din tid</h2>
+      <p class="lead lead-invert">Vi tar emot bokningar via telefon. Ring oss under öppettiderna så ordnar vi en tid som passar dig.</p>
       <!--FIELD:booking_url-->
       <!-- Ingen bokningslänk tillgänglig – vi hänvisar till telefon -->
       <!--/FIELD:booking_url-->
-      <!--FIELD:phone-->
-      <a href="tel:0321-12377" class="btn btn-primary btn-large">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        0321-123 77
-      </a>
-      <!--/FIELD:phone-->
-      <!--FIELD:email-->
-      <a href="mailto:julieto1977@gmail.com" class="btn btn-ghost">Skicka e-post</a>
-      <!--/FIELD:email-->
+      <div class="cta-row cta-row-center">
+        <!--FIELD:phone-->
+        <a href="tel:032112377" class="btn btn-dark btn-large">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          0321-123 77
+        </a>
+        <!--/FIELD:phone-->
+        <!--FIELD:email-->
+        <a href="mailto:julieto1977@gmail.com" class="btn btn-ghost-invert">Skicka e-post</a>
+        <!--/FIELD:email-->
+      </div>
     </div>
   </section>
 
   <!-- SOCIALT BEVIS -->
-  <section class="section-recensioner" id="recensioner">
+  <section class="section section-raised" id="recensioner">
     <div class="container">
       <div class="section-heading fade-in-element">
-        <span class="section-label">Vad kunderna säger</span>
+        <p class="eyebrow">Vad kunderna säger</p>
         <h2>Omdömen</h2>
       </div>
       <!--FIELD:google_rating-->
-      <div class="rating-feature fade-in-element">
+      <div class="rating-card fade-in-element">
         <div class="stars" aria-label="3,8 av 5 stjärnor">
           <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
           <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
@@ -318,19 +312,16 @@
   </section>
 
   <!-- KONTAKT -->
-  <section class="section-kontakt" id="kontakt">
-    <div class="kontakt-wave">
-      <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0,60 C480,0 960,80 1440,20 L1440,0 L0,0 Z" fill="#F5F0E8"/>
-      </svg>
-    </div>
-    <div class="container kontakt-inner">
+  <section class="section section-paper" id="kontakt">
+    <div class="container kontakt-grid">
       <div class="kontakt-info fade-in-element">
-        <span class="section-label light">Kontakt</span>
+        <p class="eyebrow">Kontakt</p>
         <h2>Hitta oss</h2>
 
         <div class="kontakt-block">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <div class="icon-chip">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          </div>
           <!--FIELD:address-->
           <div>
             <strong>Adress</strong>
@@ -340,17 +331,21 @@
         </div>
 
         <div class="kontakt-block">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <div class="icon-chip">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
           <!--FIELD:phone-->
           <div>
             <strong>Telefon</strong>
-            <p><a href="tel:0321-12377">0321-123 77</a></p>
+            <p><a href="tel:032112377">0321-123 77</a></p>
           </div>
           <!--/FIELD:phone-->
         </div>
 
         <div class="kontakt-block">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+          <div class="icon-chip">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+          </div>
           <!--FIELD:email-->
           <div>
             <strong>E-post</strong>
@@ -361,7 +356,9 @@
 
         <!--FIELD:opening_hours-->
         <div class="kontakt-block">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <div class="icon-chip">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
           <div>
             <strong>Öppettider</strong>
             <p>Mån–Tis: 09–18 &nbsp;|&nbsp; Tor: 09–18<br>Fre: 09–16 &nbsp;|&nbsp; Ons, Lör, Sön: Stängt</p>
@@ -372,13 +369,13 @@
         <div class="kontakt-social">
           <!--FIELD:facebook-->
           <a href="https://www.facebook.com/p/Ellesse-Ulricehamn-100054414103600/" target="_blank" rel="noopener" class="social-link" aria-label="Ellesse på Facebook">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
             Facebook
           </a>
           <!--/FIELD:facebook-->
           <!--FIELD:instagram-->
           <a href="https://www.instagram.com/ellesseulricehamn/" target="_blank" rel="noopener" class="social-link" aria-label="Ellesse på Instagram">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
             Instagram
           </a>
           <!--/FIELD:instagram-->
@@ -386,23 +383,25 @@
       </div>
 
       <div class="kontakt-form fade-in-element">
-        <h3>Skicka ett meddelande</h3>
-        <form class="contact-form" id="contact-form" novalidate>
-          <div class="form-group">
-            <label for="cf-name">Namn</label>
-            <input type="text" id="cf-name" name="name" autocomplete="name" required placeholder="Ditt namn">
-          </div>
-          <div class="form-group">
-            <label for="cf-email">E-post</label>
-            <input type="email" id="cf-email" name="email" autocomplete="email" required placeholder="din@epost.se">
-          </div>
-          <div class="form-group">
-            <label for="cf-message">Meddelande</label>
-            <textarea id="cf-message" name="message" rows="4" required placeholder="Vad kan vi hjälpa dig med?"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Skicka</button>
-          <p class="form-note">Formuläret öppnar din e-postklient med ifyllda uppgifter.</p>
-        </form>
+        <div class="kontakt-form-card">
+          <h3>Skicka ett meddelande</h3>
+          <form class="contact-form" id="contact-form" novalidate>
+            <div class="form-group">
+              <label for="cf-name">Namn</label>
+              <input type="text" id="cf-name" name="name" autocomplete="name" required placeholder="Ditt namn">
+            </div>
+            <div class="form-group">
+              <label for="cf-email">E-post</label>
+              <input type="email" id="cf-email" name="email" autocomplete="email" required placeholder="din@epost.se">
+            </div>
+            <div class="form-group">
+              <label for="cf-message">Meddelande</label>
+              <textarea id="cf-message" name="message" rows="4" required placeholder="Vad kan vi hjälpa dig med?"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Skicka</button>
+            <p class="form-note">Formuläret öppnar din e-postklient med ifyllda uppgifter.</p>
+          </form>
+        </div>
       </div>
     </div>
   </section>
@@ -429,7 +428,7 @@
       </div>
       <div class="footer-credits">
         <p>
-          Foto av <a href="https://unsplash.com/@gregtrow" target="_blank" rel="noopener">Greg Trowman</a>,
+          Foto av <a href="https://unsplash.com/@giorgiotrovato" target="_blank" rel="noopener">Giorgio Trovato</a>,
           <a href="https://unsplash.com/@awcreativeut" target="_blank" rel="noopener">Adam Winger</a>,
           <a href="https://unsplash.com/@lindsayrc81" target="_blank" rel="noopener">Lindsay Cash</a>,
           <a href="https://unsplash.com/@yovankaloriasalon" target="_blank" rel="noopener">Yovanka Loria Salon</a>,
