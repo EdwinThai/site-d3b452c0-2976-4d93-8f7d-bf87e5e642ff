@@ -112,13 +112,6 @@
   updateOpenStatus();
   setInterval(updateOpenStatus, 60000);
 
-  /* ---- MOBILE FLIP CARD — tap toggle ---- */
-  if (window.matchMedia('(max-width: 600px)').matches) {
-    document.querySelectorAll('.flip-card').forEach(function (card) {
-      /* On mobile, CSS disables the 3D flip; cards are stacked. No extra JS needed. */
-    });
-  }
-
   /* ---- CONTACT FORM — mailto fallback ---- */
   var form = document.getElementById('contact-form');
   if (form) {
