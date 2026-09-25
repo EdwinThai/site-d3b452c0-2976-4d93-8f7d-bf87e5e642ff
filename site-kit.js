@@ -575,10 +575,24 @@
   // flow feel real. Closed Sundays (matches the vast majority of the
   // businesses this system serves) so the grid still shows a realistic
   // shape, not "open every day forever".
-  function demoSlotsForDate(dateStr) {
+  // Slots "booked" in demo mode, kept per browser tab so a demo booking
+  // disappears from the grid like a real one would (the grid re-renders
+  // every 8s and on reopen, so disabling the clicked button alone is lost).
+  var DEMO_BOOKED_KEY = "aiosDemoBooked";
+  var demoBooked = {};
+  try { demoBooked = JSON.parse(sessionStorage.getItem(DEMO_BOOKED_KEY) || "{}") || {}; } catch (e) { demoBooked = {}; }
+  function demoBookedKey(dateStr, time, staffId) { return dateStr + "|" + time + "|" + (staffId || ""); }
+  function markDemoBooked(dateStr, time, staffId) {
+    demoBooked[demoBookedKey(dateStr, time, staffId)] = true;
+    try { sessionStorage.setItem(DEMO_BOOKED_KEY, JSON.stringify(demoBooked)); } catch (e) {}
+  }
+
+  function demoSlotsForDate(dateStr, staffId) {
     var d = new Date(dateStr + "T00:00:00");
     if (d.getDay() === 0) return [];
-    var all = ["10:00", "11:30", "13:00", "14:30", "16:00"];
+    var all = ["10:00", "11:30", "13:00", "14:30", "16:00"].filter(function (t) {
+      return !demoBooked[demoBookedKey(dateStr, t, staffId)];
+    });
     if (dateStr !== isoDate(new Date())) return all;
     var now = new Date();
     var nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -688,6 +702,7 @@
           // pacing as the real path (a brief "Bokar…" beat) but nothing is
           // ever sent anywhere or persisted.
           setTimeout(function () {
+            markDemoBooked(pending.dateStr, pending.timeLabel, pending.staffId);
             backdrop.classList.add("is-done");
             if (successLine) successLine.textContent = "Bokat: " + pending.label;
             if (pending.btn) pending.btn.disabled = true;
@@ -1217,7 +1232,7 @@
           var demoTarget = new Date(fromDateStr + "T00:00:00");
           for (var i = 0; i < 8; i++) {
             demoTarget.setDate(demoTarget.getDate() + 1);
-            if (demoSlotsForDate(isoDate(demoTarget)).length > 0) break;
+            if (demoSlotsForDate(isoDate(demoTarget), resolvedStaffId).length > 0) break;
           }
           var demoMonday = startOfWeek(0);
           weekOffset = Math.round((demoTarget - demoMonday) / (7 * 24 * 60 * 60 * 1000));
@@ -1252,7 +1267,7 @@
       var duration = currentService.durationMinutes;
       if (!isLive) {
         var demoPerDay = {};
-        days.forEach(function (d) { demoPerDay[isoDate(d)] = demoSlotsForDate(isoDate(d)); });
+        days.forEach(function (d) { demoPerDay[isoDate(d)] = demoSlotsForDate(isoDate(d), resolvedStaffId); });
         var demoOpenCount = renderAvailabilityGrid(grid, days, demoPerDay, onPick);
         grid.classList.remove("is-loading");
         if (demoOpenCount === 0) showNextAvailable(isoDate(days[6]));
