@@ -609,3 +609,16 @@ p { max-width: 62ch; line-height: 1.75; color: var(--ink-soft); }
    regardless of stylesheet load order (2026-09-25, real complaint fixed). */
 .menu-groups .price-item-book-btn { border-color: var(--accent-deep); color: var(--accent-deep); }
 .menu-groups .price-item-book-btn:hover { background: var(--accent-deep); border-color: var(--accent-deep); color: #fff; }
+
+
+/* .menu-groups/.menu-group: the 3-column grid that keeps each category's
+   price-item rows narrow (this markup was hand-added without its matching
+   layout CSS -- real bug, 2026-09-25 -- without it every row stretched the
+   full container width, reading as "service name far left, Boka far right,
+   nothing connecting them"). Same rule Pretty Hair's real build uses,
+   --accent-deep swapped in for the heading for the same contrast reason as
+   the Boka button above. */
+.menu-groups { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; margin: 3rem 0 4rem; }
+.menu-group h3 { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-deep); margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+.menu-group-count { font-size: 0.7rem; font-weight: 600; color: var(--ink-faint); background: var(--paper-raised); border-radius: 999px; padding: 0.1rem 0.55rem; letter-spacing: normal; text-transform: none; }
+@media (max-width: 700px) { .menu-groups { grid-template-columns: 1fr; } }
