@@ -599,3 +599,13 @@ p { max-width: 62ch; line-height: 1.75; color: var(--ink-soft); }
 
   h2 { margin-bottom: 0.75rem; }
 }
+
+
+/* Override site-kit.css's .price-item-book-btn default accent color --
+   Ellesse's own --accent (#c8a898) is too pale/low-contrast to read
+   clearly as an outlined button's border+text against this page's cream
+   background. --accent-deep (already defined) gives real contrast.
+   Higher specificity than site-kit.css's plain .price-item-book-btn wins
+   regardless of stylesheet load order (2026-09-25, real complaint fixed). */
+.menu-groups .price-item-book-btn { border-color: var(--accent-deep); color: var(--accent-deep); }
+.menu-groups .price-item-book-btn:hover { background: var(--accent-deep); border-color: var(--accent-deep); color: #fff; }
