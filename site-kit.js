@@ -610,7 +610,7 @@
    * calendar and the popup so a fix to how "today"/"fullbokat"/disabled
    * slots render only has to happen in one place.
    */
-  function renderAvailabilityGrid(grid, days, perDay, onPick) {
+  function renderAvailabilityGrid(grid, days, perDay, onPick, closedDays) {
     var today = new Date();
     today.setHours(0, 0, 0, 0);
     var totalOpenSlots = 0;
@@ -634,7 +634,7 @@
       if (slots.length === 0) {
         var full = document.createElement("span");
         full.className = "booking-cal-closed";
-        full.textContent = "Fullbokat";
+        full.textContent = closedDays && closedDays[dateStr] ? "Stängt" : "Fullbokat";
         slotsWrap.appendChild(full);
       } else {
         slots.forEach(function (time) {
@@ -971,13 +971,14 @@
             var dateStr = isoDate(d);
             return fetch(apiBase + "/bookings/" + companyId + "/availability?staffId=" + selectedStaffId + "&date=" + dateStr + "&durationMinutes=" + duration)
               .then(function (r) { return r.json(); })
-              .then(function (res) { return { dateStr: dateStr, slots: res.slots || [] }; })
+              .then(function (res) { return { dateStr: dateStr, slots: res.slots || [], closed: !!res.closed }; })
               .catch(function () { return { dateStr: dateStr, slots: [] }; });
           })
         ).then(function (results) {
           var perDay = {};
-          results.forEach(function (r) { perDay[r.dateStr] = r.slots; });
-          var openCount = renderAvailabilityGrid(grid, days, perDay, onPick);
+          var closedDays = {};
+          results.forEach(function (r) { perDay[r.dateStr] = r.slots; if (r.closed) closedDays[r.dateStr] = true; });
+          var openCount = renderAvailabilityGrid(grid, days, perDay, onPick, closedDays);
           grid.classList.remove("is-loading");
           if (openCount === 0) showNextAvailable(isoDate(days[6]));
         });
@@ -1267,8 +1268,12 @@
       var duration = currentService.durationMinutes;
       if (!isLive) {
         var demoPerDay = {};
-        days.forEach(function (d) { demoPerDay[isoDate(d)] = demoSlotsForDate(isoDate(d), resolvedStaffId); });
-        var demoOpenCount = renderAvailabilityGrid(grid, days, demoPerDay, onPick);
+        var demoClosed = {};
+        days.forEach(function (d) {
+          demoPerDay[isoDate(d)] = demoSlotsForDate(isoDate(d), resolvedStaffId);
+          if (d.getDay() === 0) demoClosed[isoDate(d)] = true;
+        });
+        var demoOpenCount = renderAvailabilityGrid(grid, days, demoPerDay, onPick, demoClosed);
         grid.classList.remove("is-loading");
         if (demoOpenCount === 0) showNextAvailable(isoDate(days[6]));
         return;
@@ -1278,13 +1283,14 @@
           var dateStr = isoDate(d);
           return fetch(apiBase + "/bookings/" + companyId + "/availability?staffId=" + resolvedStaffId + "&date=" + dateStr + "&durationMinutes=" + duration)
             .then(function (r) { return r.json(); })
-            .then(function (res) { return { dateStr: dateStr, slots: res.slots || [] }; })
+            .then(function (res) { return { dateStr: dateStr, slots: res.slots || [], closed: !!res.closed }; })
             .catch(function () { return { dateStr: dateStr, slots: [] }; });
         })
       ).then(function (results) {
         var perDay = {};
-        results.forEach(function (r) { perDay[r.dateStr] = r.slots; });
-        var openCount = renderAvailabilityGrid(grid, days, perDay, onPick);
+        var closedDays = {};
+        results.forEach(function (r) { perDay[r.dateStr] = r.slots; if (r.closed) closedDays[r.dateStr] = true; });
+        var openCount = renderAvailabilityGrid(grid, days, perDay, onPick, closedDays);
         grid.classList.remove("is-loading");
         if (openCount === 0) showNextAvailable(isoDate(days[6]));
       });
