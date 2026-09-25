@@ -7,6 +7,7 @@
   <meta name="description" content="Ellesse är en frisörsalong på Storgatan 15 i Ulricehamn. Vi erbjuder klippning, färgning, hårvård, extensions och trendiga frisyrer. Boka tid via telefon.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="site-kit.css">
 </head>
 <body>
 
@@ -46,6 +47,7 @@
           </a>
           <!--/FIELD:phone-->
           <a href="#tjanster" class="btn btn-outline">Våra tjänster</a>
+          <span class="next-available-note" data-company-id="d3b452c0-2976-4d93-8f7d-bf87e5e642ff" data-api-base="https://aios-demo-sites-production.up.railway.app" data-duration-minutes="30" hidden></span>
         </div>
       </div>
       <div class="hero-visual">
@@ -101,108 +103,72 @@
         <p class="lead section-sub">Vi erbjuder ett brett utbud av frisörtjänster – alltid med fokus på kvalitet och omsorg om just ditt hår.</p>
       </div>
       <!--FIELD:services-->
-      <div class="services-grid">
-
-        <!-- Klippning -->
-        <article class="service-card fade-in-element">
-          <div class="service-media">
-            <img
-              src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMHNhbG9uJTIwaGFpcmN1dCUyMHN0eWxpbmd8ZW58MHwwfHx8MTc4NzczNzAzOHww&ixlib=rb-4.1.0&q=80&w=1080"
-              alt="Klippning"
-              loading="lazy"
-            >
-            <div class="service-icon-chip" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+      <div class="menu-groups">
+        <div class="menu-group">
+          <h3>Klippning <span class="menu-group-count">1</span></h3>
+          <div class="price-item">
+            <div class="price-item-info">
+              <span class="price-item-name">Klippning</span>
+              <span class="price-item-duration">45 min</span>
             </div>
-          </div>
-          <div class="service-body">
-            <h3>Klippning</h3>
-            <p>Oavsett om det är en enkel trimning eller en hel omvandling tar vi oss tid för att ge dig den frisyr du vill ha.</p>
-            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-            <p class="card-credit">Foto: <a href="https://unsplash.com/@awcreativeut" target="_blank" rel="noopener">Adam Winger</a>, Unsplash</p>
-          </div>
-        </article>
-
-        <!-- Hårvård -->
-        <article class="service-card fade-in-element">
-          <div class="service-media">
-            <img
-              src="https://images.unsplash.com/photo-1634449571010-02389ed0f9b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMGNhcmUlMjB0cmVhdG1lbnQlMjBzYWxvbnxlbnwwfDB8fHwxNzg4NjA4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080"
-              alt="Hårvård"
-              loading="lazy"
-            >
-            <div class="service-icon-chip" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69s-5.5 6.13-5.5 10.31a5.5 5.5 0 0 0 11 0c0-4.18-5.5-10.31-5.5-10.31z"/></svg>
+            <div class="price-item-price">
+              <span class="price-item-amount"><!--FIELD:prices-->Företagets priser här<!--/FIELD:prices--></span>
             </div>
+            <button class="price-item-book-btn" type="button" data-service-name="Klippning" data-duration-minutes="45">Boka</button>
           </div>
-          <div class="service-body">
-            <h3>Hårvård</h3>
-            <p>Behandlingar som ger ditt hår ny styrka och lyster – skräddarsydda efter just dina behov.</p>
-            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-            <p class="card-credit">Foto: <a href="https://unsplash.com/@lindsayrc81" target="_blank" rel="noopener">Lindsay Cash</a>, Unsplash</p>
-          </div>
-        </article>
-
-        <!-- Extensions -->
-        <article class="service-card fade-in-element">
-          <div class="service-media">
-            <img
-              src="https://images.unsplash.com/photo-1785456463151-623876d5b7af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMGV4dGVuc2lvbnMlMjBzYWxvbnxlbnwwfDB8fHwxNzg4NjA4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080"
-              alt="Extensions"
-              loading="lazy"
-            >
-            <div class="service-icon-chip" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v4M3 5h4M6 17v4M4 19h4M13 3l1.5 4.5L19 9l-4.5 1.5L13 15l-1.5-4.5L7 9l4.5-1.5L13 3z"/></svg>
+        </div>
+        <div class="menu-group">
+          <h3>Färgning <span class="menu-group-count">1</span></h3>
+          <div class="price-item">
+            <div class="price-item-info">
+              <span class="price-item-name">Färgning</span>
+              <span class="price-item-duration">90 min</span>
             </div>
-          </div>
-          <div class="service-body">
-            <h3>Extensions</h3>
-            <p>Längd, volym och naturligt utseende – vi applicerar extensions med omsorg och precision.</p>
-            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-            <p class="card-credit">Foto: <a href="https://unsplash.com/@yovankaloriasalon" target="_blank" rel="noopener">Yovanka Loria Salon</a>, Unsplash</p>
-          </div>
-        </article>
-
-        <!-- Färgning -->
-        <article class="service-card fade-in-element">
-          <div class="service-media">
-            <img
-              src="https://images.unsplash.com/photo-1617391654484-2894196c2cc9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8aGFpciUyMGNvbG9yaW5nJTIwc2Fsb258ZW58MHwwfHx8MTc4NzczNzA0MHww&ixlib=rb-4.1.0&q=80&w=1080"
-              alt="Färgning"
-              loading="lazy"
-            >
-            <div class="service-icon-chip" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.4-.3-.4-.5-.8-.5-1.4 0-1.1.9-2 2-2h2.4c2 0 3.6-1.6 3.6-3.6C21 6.6 17 2 12 2z"/></svg>
+            <div class="price-item-price">
+              <span class="price-item-amount"><!--FIELD:prices-->Företagets priser här<!--/FIELD:prices--></span>
             </div>
+            <button class="price-item-book-btn" type="button" data-service-name="Färgning" data-duration-minutes="90">Boka</button>
           </div>
-          <div class="service-body">
-            <h3>Färgning</h3>
-            <p>Färgning, slingor och balayage – vi hittar rätt ton för dig och tar hand om håret från rot till spets.</p>
-            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-            <p class="card-credit">Foto: <a href="https://unsplash.com/@primipil" target="_blank" rel="noopener">Maksim Chernishev</a>, Unsplash</p>
-          </div>
-        </article>
-
-        <!-- Trendiga frisyrer -->
-        <article class="service-card fade-in-element">
-          <div class="service-media">
-            <img
-              src="https://images.unsplash.com/photo-1762331207337-42c09537103d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMDE3MjMyfDB8MXxzZWFyY2h8MXx8dHJlbmR5JTIwbW9kZXJuJTIwaGFpcnN0eWxlcyUyMGZhc2hpb258ZW58MHwwfHx8MTc4ODYwODMwNHww&ixlib=rb-4.1.0&q=80&w=1080"
-              alt="Trendiga frisyrer"
-              loading="lazy"
-            >
-            <div class="service-icon-chip" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6L22 9.3l-5 4.8L18.2 22 12 18.3 5.8 22 7 14.1l-5-4.8 7.1-.7L12 2z"/></svg>
+        </div>
+        <div class="menu-group">
+          <h3>Hårvård <span class="menu-group-count">1</span></h3>
+          <div class="price-item">
+            <div class="price-item-info">
+              <span class="price-item-name">Hårvård</span>
+              <span class="price-item-duration">60 min</span>
             </div>
+            <div class="price-item-price">
+              <span class="price-item-amount"><!--FIELD:prices-->Företagets priser här<!--/FIELD:prices--></span>
+            </div>
+            <button class="price-item-book-btn" type="button" data-service-name="Hårvård" data-duration-minutes="60">Boka</button>
           </div>
-          <div class="service-body">
-            <h3>Trendiga frisyrer</h3>
-            <p>Vi håller oss uppdaterade med det senaste inom hårtrender – så att du kan göra det med.</p>
-            <!--FIELD:prices--><p class="price-placeholder">Företagets priser här</p><!--/FIELD:prices-->
-            <p class="card-credit">Foto: <a href="https://unsplash.com/@zulfugarkarimov" target="_blank" rel="noopener">Zulfugar Karimov</a>, Unsplash</p>
+        </div>
+        <div class="menu-group">
+          <h3>Extensions <span class="menu-group-count">1</span></h3>
+          <div class="price-item">
+            <div class="price-item-info">
+              <span class="price-item-name">Extensions</span>
+              <span class="price-item-duration">120 min</span>
+            </div>
+            <div class="price-item-price">
+              <span class="price-item-amount"><!--FIELD:prices-->Företagets priser här<!--/FIELD:prices--></span>
+            </div>
+            <button class="price-item-book-btn" type="button" data-service-name="Extensions" data-duration-minutes="120">Boka</button>
           </div>
-        </article>
-
+        </div>
+        <div class="menu-group">
+          <h3>Styling <span class="menu-group-count">1</span></h3>
+          <div class="price-item">
+            <div class="price-item-info">
+              <span class="price-item-name">Trendiga frisyrer</span>
+              <span class="price-item-duration">60 min</span>
+            </div>
+            <div class="price-item-price">
+              <span class="price-item-amount"><!--FIELD:prices-->Företagets priser här<!--/FIELD:prices--></span>
+            </div>
+            <button class="price-item-book-btn" type="button" data-service-name="Trendiga frisyrer" data-duration-minutes="60">Boka</button>
+          </div>
+        </div>
       </div>
       <!--/FIELD:services-->
       <p class="tjanster-note fade-in-element">Undrar du vad som passar dig bäst? Ring oss så hjälper vi dig.</p>
@@ -260,11 +226,12 @@
     <div class="container boka-inner fade-in-element">
       <p class="eyebrow eyebrow-invert">Redo?</p>
       <h2 class="h-invert">Boka din tid</h2>
-      <p class="lead lead-invert">Vi tar emot bokningar via telefon. Ring oss under öppettiderna så ordnar vi en tid som passar dig.</p>
+      <p class="lead lead-invert">Välj en tjänst under "Tjänster" ovan och klicka Boka — du väljer frisör och tid direkt, utan krångel. Vill du hellre boka via telefon eller mejl går det också bra.</p>
       <!--FIELD:booking_url-->
-      <!-- Ingen bokningslänk tillgänglig – vi hänvisar till telefon -->
+      <!-- Ingen extern bokningslänk tillgänglig – bokning sker via den inbyggda widgeten under Tjänster, eller telefon/mejl nedan -->
       <!--/FIELD:booking_url-->
       <div class="cta-row cta-row-center">
+        <a class="btn btn-dark btn-large" href="#tjanster">Se tjänster &amp; boka</a>
         <!--FIELD:phone-->
         <a href="tel:032112377" class="btn btn-dark btn-large">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.77a16 16 0 0 0 6 6l.94-.94a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
@@ -442,6 +409,47 @@
     </div>
   </footer>
 
+  <div class="booking-widget-backdrop" id="bookingWidget" data-company-id="d3b452c0-2976-4d93-8f7d-bf87e5e642ff" data-api-base="https://aios-demo-sites-production.up.railway.app">
+    <div class="booking-widget-modal" role="dialog" aria-modal="true" aria-label="Boka tid">
+      <button class="booking-widget-close" id="bookingWidgetClose" type="button" aria-label="Stäng">&times;</button>
+      <div class="booking-widget-service">
+        <span class="booking-widget-service-name" id="bookingWidgetServiceName"></span>
+        <span class="booking-widget-service-meta" id="bookingWidgetServiceMeta"></span>
+      </div>
+      <div class="booking-widget-step" id="bookingWidgetStepStaff">
+        <label class="booking-widget-label" for="bookingWidgetStaffSelect">Välj frisör</label>
+        <select class="booking-widget-select" id="bookingWidgetStaffSelect" aria-label="Välj frisör"></select>
+        <button class="booking-widget-search-btn" id="bookingWidgetSearchBtn" type="button">Sök tider</button>
+      </div>
+      <div class="booking-widget-step" id="bookingWidgetStepTimes" hidden>
+        <button class="booking-widget-back" id="bookingWidgetBack" type="button">‹ Byt frisör</button>
+        <div class="booking-cal-head">
+          <button class="booking-cal-nav" type="button" data-dir="-1" aria-label="Föregående vecka">‹</button>
+          <span class="booking-cal-range" id="bookingWidgetRange"></span>
+          <button class="booking-cal-nav" type="button" data-dir="1" aria-label="Nästa vecka">›</button>
+        </div>
+        <div class="booking-cal-grid" id="bookingWidgetGrid"></div>
+        <p class="booking-cal-next-available" id="bookingWidgetNextAvail" style="display:none;"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bd-backdrop" id="bdBackdrop">
+    <div class="bd-modal" role="dialog" aria-modal="true" aria-label="Bokning">
+      <div class="bd-header"><div class="bd-brand"><span class="dot"></span>Ellesse</div><button class="bd-close" id="bdClose" type="button" aria-label="Stäng">&times;</button></div>
+      <div class="bd-body">
+        <div class="bd-form">
+          <div class="bd-slot-summary"><strong id="bdSlotLine">—</strong>Hos Ellesse, Storgatan 15</div>
+          <div class="bd-field"><label for="bdName">Namn</label><input id="bdName" type="text"></div>
+          <div class="bd-field"><label for="bdPhone">Telefonnummer</label><input id="bdPhone" type="tel"></div>
+          <button class="bd-confirm-btn" id="bdConfirm" type="button">Bekräfta bokning</button>
+        </div>
+        <div class="bd-success"><div class="check">&#10003;</div><p id="bdSuccessLine">Bokat!</p><p class="fine">Vi ser fram emot ditt besök.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="site-kit.js" defer></script>
   <script src="script.js" defer></script>
 </body>
 </html>
