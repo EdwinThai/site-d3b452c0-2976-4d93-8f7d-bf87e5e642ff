@@ -540,6 +540,27 @@
     return monday.getDate() + " " + MONTHS_SHORT[monday.getMonth()] + " – " + sunday.getDate() + " " + MONTHS_SHORT[sunday.getMonth()];
   }
 
+  function isoWeekNumber(date) {
+    var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  }
+
+  /** "Vecka 40" as the headline with the date range under it. */
+  function setRangeLabel(el, monday) {
+    if (!el) return;
+    el.innerHTML = "";
+    var num = document.createElement("span");
+    num.className = "wk-num";
+    num.textContent = "Vecka " + isoWeekNumber(monday);
+    var sub = document.createElement("span");
+    sub.className = "wk-sub";
+    sub.textContent = fmtRange(monday);
+    el.appendChild(num);
+    el.appendChild(sub);
+  }
+
   /**
    * Demo mode (2026-09-17) — the booking UI's default state, and the whole
    * reason it is: a generated site is shown to a PROSPECT (or just previewed
@@ -575,23 +596,31 @@
   // flow feel real. Closed Sundays (matches the vast majority of the
   // businesses this system serves) so the grid still shows a realistic
   // shape, not "open every day forever".
-  // Slots "booked" in demo mode, kept per browser tab so a demo booking
-  // disappears from the grid like a real one would (the grid re-renders
-  // every 8s and on reopen, so disabling the clicked button alone is lost).
-  var DEMO_BOOKED_KEY = "aiosDemoBooked";
-  var demoBooked = {};
-  try { demoBooked = JSON.parse(sessionStorage.getItem(DEMO_BOOKED_KEY) || "{}") || {}; } catch (e) { demoBooked = {}; }
-  function demoBookedKey(dateStr, time, staffId) { return dateStr + "|" + time + "|" + (staffId || ""); }
-  function markDemoBooked(dateStr, time, staffId) {
-    demoBooked[demoBookedKey(dateStr, time, staffId)] = true;
-    try { sessionStorage.setItem(DEMO_BOOKED_KEY, JSON.stringify(demoBooked)); } catch (e) {}
+  // Demo bookings, kept per browser tab so a booked time and every slot
+  // overlapping its duration disappear from the grid like real ones would
+  // (the grid re-renders every 8s and on reopen, so disabling the clicked
+  // button alone is lost). Same half-open [start, start+duration) overlap
+  // rule as the server's computeAvailableSlots.
+  var DEMO_BOOKED_KEY = "aiosDemoBookings";
+  var demoBookings = [];
+  try { demoBookings = JSON.parse(sessionStorage.getItem(DEMO_BOOKED_KEY) || "[]") || []; } catch (e) { demoBookings = []; }
+  function hmToMin(hm) { var p = hm.split(":"); return parseInt(p[0], 10) * 60 + parseInt(p[1], 10); }
+  function markDemoBooked(dateStr, time, staffId, durationMinutes) {
+    demoBookings.push({ date: dateStr, start: hmToMin(time), minutes: durationMinutes || 30, staff: staffId || "" });
+    try { sessionStorage.setItem(DEMO_BOOKED_KEY, JSON.stringify(demoBookings)); } catch (e) {}
+  }
+  function overlapsDemoBooking(dateStr, startMin, durationMinutes, staffId) {
+    var endMin = startMin + (durationMinutes || 30);
+    return demoBookings.some(function (b) {
+      return b.date === dateStr && b.staff === (staffId || "") && startMin < b.start + b.minutes && b.start < endMin;
+    });
   }
 
-  function demoSlotsForDate(dateStr, staffId) {
+  function demoSlotsForDate(dateStr, staffId, durationMinutes) {
     var d = new Date(dateStr + "T00:00:00");
     if (d.getDay() === 0) return [];
     var all = ["10:00", "11:30", "13:00", "14:30", "16:00"].filter(function (t) {
-      return !demoBooked[demoBookedKey(dateStr, t, staffId)];
+      return !overlapsDemoBooking(dateStr, hmToMin(t), durationMinutes, staffId);
     });
     if (dateStr !== isoDate(new Date())) return all;
     var now = new Date();
@@ -702,7 +731,7 @@
           // pacing as the real path (a brief "Bokar…" beat) but nothing is
           // ever sent anywhere or persisted.
           setTimeout(function () {
-            markDemoBooked(pending.dateStr, pending.timeLabel, pending.staffId);
+            markDemoBooked(pending.dateStr, pending.timeLabel, pending.staffId, pending.durationMinutes);
             backdrop.classList.add("is-done");
             if (successLine) successLine.textContent = "Bokat: " + pending.label;
             if (pending.btn) pending.btn.disabled = true;
@@ -954,7 +983,7 @@
 
     function render() {
       var monday = startOfWeek(weekOffset);
-      if (rangeLabel) rangeLabel.textContent = fmtRange(monday);
+      setRangeLabel(rangeLabel, monday);
       var days = [];
       for (var i = 0; i < 7; i++) {
         var d = new Date(monday);
@@ -1233,7 +1262,7 @@
           var demoTarget = new Date(fromDateStr + "T00:00:00");
           for (var i = 0; i < 8; i++) {
             demoTarget.setDate(demoTarget.getDate() + 1);
-            if (demoSlotsForDate(isoDate(demoTarget), resolvedStaffId).length > 0) break;
+            if (demoSlotsForDate(isoDate(demoTarget), resolvedStaffId, currentService.durationMinutes).length > 0) break;
           }
           var demoMonday = startOfWeek(0);
           weekOffset = Math.round((demoTarget - demoMonday) / (7 * 24 * 60 * 60 * 1000));
@@ -1256,7 +1285,7 @@
     function render() {
       if (!resolvedStaffId) return;
       var monday = startOfWeek(weekOffset);
-      if (rangeLabel) rangeLabel.textContent = fmtRange(monday);
+      setRangeLabel(rangeLabel, monday);
       var days = [];
       for (var i = 0; i < 7; i++) {
         var d = new Date(monday);
@@ -1270,7 +1299,7 @@
         var demoPerDay = {};
         var demoClosed = {};
         days.forEach(function (d) {
-          demoPerDay[isoDate(d)] = demoSlotsForDate(isoDate(d), resolvedStaffId);
+          demoPerDay[isoDate(d)] = demoSlotsForDate(isoDate(d), resolvedStaffId, duration);
           if (d.getDay() === 0) demoClosed[isoDate(d)] = true;
         });
         var demoOpenCount = renderAvailabilityGrid(grid, days, demoPerDay, onPick, demoClosed);
