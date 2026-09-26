@@ -693,6 +693,15 @@
    * #bdConfirm ever, regardless of which booking UI(s) exist on a given
    * page. Returns null if the page has no #bdBackdrop at all.
    */
+  /** Swedish numbers (07x…, 08…, +46…/0046…) or any international +number.
+   * Same rule as the server's check in bookings.ts. */
+  function isValidPhone(raw) {
+    var s = String(raw || "").replace(/[\s\-().\/]/g, "");
+    if (/^\+46/.test(s)) s = "0" + s.slice(3).replace(/^0/, "");
+    else if (/^0046/.test(s)) s = "0" + s.slice(4).replace(/^0/, "");
+    return /^0\d{7,9}$/.test(s) || /^\+\d{7,15}$/.test(s);
+  }
+
   function createConfirmModal(apiBase, companyId, isLive) {
     var backdrop = document.getElementById("bdBackdrop");
     if (!backdrop) return null;
@@ -704,6 +713,60 @@
     var successLine = document.getElementById("bdSuccessLine");
     var pending = null; // { label, dateStr, timeLabel, staffId, serviceIds, serviceLabel, durationMinutes, btn, onDone }
 
+    // Sites built before first/last name were split only have one "Namn"
+    // field (#bdName): relabel it Förnamn and add Efternamn right after it.
+    var lastNameInput = document.getElementById("bdLastName");
+    if (nameInput && !lastNameInput) {
+      var nameLabel = document.querySelector('label[for="bdName"]');
+      if (nameLabel) nameLabel.textContent = "Förnamn";
+      var lastField = document.createElement("div");
+      lastField.className = "bd-field";
+      var lastLabel = document.createElement("label");
+      lastLabel.setAttribute("for", "bdLastName");
+      lastLabel.textContent = "Efternamn";
+      lastNameInput = document.createElement("input");
+      lastNameInput.id = "bdLastName";
+      lastNameInput.type = "text";
+      lastField.appendChild(lastLabel);
+      lastField.appendChild(lastNameInput);
+      var nameField = nameInput.closest(".bd-field") || nameInput;
+      nameField.parentNode.insertBefore(lastField, nameField.nextSibling);
+    }
+    if (nameInput) nameInput.setAttribute("autocomplete", "given-name");
+    if (lastNameInput) lastNameInput.setAttribute("autocomplete", "family-name");
+    if (phoneInput) {
+      phoneInput.setAttribute("autocomplete", "tel");
+      phoneInput.setAttribute("inputmode", "tel");
+      if (!phoneInput.placeholder) phoneInput.placeholder = "070-123 45 67";
+    }
+    var formError = document.getElementById("bdError");
+    if (!formError && confirmBtn) {
+      formError = document.createElement("p");
+      formError.id = "bdError";
+      formError.className = "bd-error";
+      formError.setAttribute("role", "alert");
+      formError.hidden = true;
+      confirmBtn.parentNode.insertBefore(formError, confirmBtn);
+    }
+
+    function showFormError(message, input) {
+      [nameInput, lastNameInput, phoneInput].forEach(function (i) { if (i) i.removeAttribute("aria-invalid"); });
+      if (!formError) return;
+      formError.textContent = message || "";
+      formError.hidden = !message;
+      if (input) { input.setAttribute("aria-invalid", "true"); input.focus(); }
+    }
+
+    function validateForm() {
+      var first = nameInput ? nameInput.value.trim() : "";
+      var last = lastNameInput ? lastNameInput.value.trim() : "";
+      var phone = phoneInput ? phoneInput.value.trim() : "";
+      if (!/\p{L}/u.test(first)) return { message: "Fyll i ditt förnamn.", input: nameInput };
+      if (!/\p{L}/u.test(last)) return { message: "Fyll i ditt efternamn.", input: lastNameInput };
+      if (!isValidPhone(phone)) return { message: "Fyll i ett giltigt telefonnummer, t.ex. 070-123 45 67.", input: phoneInput };
+      return null;
+    }
+
     function isOpen() { return backdrop.classList.contains("is-open"); }
 
     function open(details) {
@@ -711,7 +774,9 @@
       backdrop.classList.remove("is-done");
       if (slotLine) slotLine.textContent = details.label;
       if (nameInput) nameInput.value = "";
+      if (lastNameInput) lastNameInput.value = "";
       if (phoneInput) phoneInput.value = "";
+      showFormError("");
       if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = "Bekräfta bokning"; }
       backdrop.classList.add("is-open");
     }
@@ -724,6 +789,9 @@
     if (confirmBtn) {
       confirmBtn.addEventListener("click", function () {
         if (!pending) return;
+        var invalid = validateForm();
+        if (invalid) { showFormError(invalid.message, invalid.input); return; }
+        showFormError("");
         confirmBtn.disabled = true;
         confirmBtn.textContent = "Bokar…";
         if (!isLive) {
@@ -749,12 +817,18 @@
             serviceIds: pending.serviceIds && pending.serviceIds.length ? pending.serviceIds : undefined,
             serviceLabel: pending.serviceLabel || undefined,
             durationMinutes: pending.durationMinutes || undefined,
-            customerName: nameInput ? nameInput.value : "",
-            customerPhone: phoneInput ? phoneInput.value : "",
+            customerName: (nameInput ? nameInput.value.trim() : "") + " " + (lastNameInput ? lastNameInput.value.trim() : ""),
+            customerPhone: phoneInput ? phoneInput.value.trim() : "",
           }),
         })
-          .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, body: body }; }); })
+          .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, status: r.status, body: body }; }); })
           .then(function (res) {
+            if (res.status === 400) {
+              confirmBtn.disabled = false;
+              confirmBtn.textContent = "Bekräfta bokning";
+              showFormError(res.body.error || "Kontrollera uppgifterna och försök igen.");
+              return;
+            }
             backdrop.classList.add("is-done");
             if (res.ok) {
               if (successLine) successLine.textContent = "Bokat: " + pending.label;
