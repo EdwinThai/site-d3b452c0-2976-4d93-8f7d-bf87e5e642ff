@@ -181,6 +181,9 @@
 .booking-cal-next-available .chip-link-btn { background: none; border: none; padding: 0; font: inherit; font-size: 0.86rem; font-weight: 600; color: var(--accent, #333); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .booking-cal-head { display: flex; align-items: center; justify-content: center; gap: 1.25rem; margin-bottom: 1.75rem; }
 .booking-cal-range { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint, #888); min-width: 11ch; text-align: center; }
+.booking-cal-range .wk-num, .booking-cal-range .wk-sub { display: block; }
+.booking-cal-range .wk-num { font-family: var(--font-head, inherit); font-size: 1.2rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink, inherit); }
+.booking-cal-range .wk-sub { font-size: 0.74rem; font-weight: 500; letter-spacing: 0.02em; text-transform: none; margin-top: 0.15rem; }
 .booking-cal-nav {
   width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border, rgba(0,0,0,0.12));
   background: transparent; color: var(--ink, inherit); font-size: 1.05rem; line-height: 1; cursor: pointer;
@@ -384,6 +387,27 @@
 }
 .booking-widget-back:hover { color: var(--accent, #333); }
 
+/* The whole week always fits in one row and a normal day's times fit
+   without scrolling: compact columns and slots inside the popup only. */
+.booking-widget-modal { max-width: 720px; max-height: 94vh; padding: 1.4rem 1.25rem 1rem; }
+.booking-widget-modal .booking-widget-service { margin-bottom: 0.9rem; }
+.booking-widget-modal .booking-widget-back { margin-bottom: 0.4rem; }
+.booking-widget-modal .booking-cal-head { margin-bottom: 0.9rem; }
+.booking-widget-modal .booking-cal-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.4rem; }
+.booking-widget-modal .booking-cal-day { padding: 0.55rem 0.3rem; gap: 0.35rem; border-radius: 10px; min-width: 0; }
+.booking-widget-modal .booking-cal-day-head { padding-bottom: 0.3rem; gap: 0; }
+.booking-widget-modal .booking-cal-day-head .dt { font-size: 1.05rem; }
+.booking-widget-modal .booking-cal-slots { gap: 0.25rem; }
+.booking-widget-modal .booking-cal-slots .slot-btn { padding: 0.22rem 0; font-size: 0.76rem; border-radius: 6px; min-width: 0; }
+.booking-widget-modal .booking-cal-closed { font-size: 0.7rem; padding: 0.4rem 0; }
+
 @media (max-width: 620px) {
-  .booking-widget-modal .booking-cal-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+  .booking-widget-backdrop { padding: 0.6rem; }
+  .booking-widget-modal { padding: 1.1rem 0.6rem 0.8rem; }
+  .booking-widget-modal .booking-cal-grid { gap: 0.2rem; }
+  .booking-widget-modal .booking-cal-day { padding: 0.4rem 0.1rem; border-radius: 8px; }
+  .booking-widget-modal .booking-cal-day-head .wd { font-size: 0.56rem; letter-spacing: 0.04em; }
+  .booking-widget-modal .booking-cal-day-head .dt { font-size: 0.92rem; }
+  .booking-widget-modal .booking-cal-slots .slot-btn { font-size: 0.64rem; padding: 0.3rem 0; letter-spacing: -0.02em; border-radius: 5px; }
+  .booking-widget-modal .booking-cal-closed { font-size: 0.58rem; }
 }
