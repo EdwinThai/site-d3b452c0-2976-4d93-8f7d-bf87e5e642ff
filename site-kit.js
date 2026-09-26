@@ -714,6 +714,61 @@
     return /^0\d{7,9}$/.test(s) || /^\+\d{7,15}$/.test(s);
   }
 
+  /**
+   * Phone field with a fixed "+46" in front: the visitor types the rest and
+   * it's grouped as they go (70 123 45 67, or 8 658 33 08 for Stockholm).
+   * A typed/pasted leading 0, +46 or 0046 is absorbed. Starting with "+"
+   * and another country code switches to a plain international field.
+   */
+  function wirePhoneInput(input) {
+    var wrap = document.createElement("div");
+    wrap.className = "bd-phone-wrap";
+    var prefix = document.createElement("span");
+    prefix.className = "bd-phone-prefix";
+    prefix.textContent = "+46";
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(prefix);
+    wrap.appendChild(input);
+    input.setAttribute("autocomplete", "tel");
+    input.setAttribute("inputmode", "tel");
+    input.placeholder = "70 123 45 67";
+
+    function national(v) {
+      var s = v.replace(/[^\d+]/g, "");
+      if (s.indexOf("+46") === 0) s = s.slice(3);
+      else if (s.indexOf("0046") === 0) s = s.slice(4);
+      return s.replace(/\D/g, "").replace(/^0+/, "").slice(0, 9);
+    }
+    function group(d) {
+      var parts = d.charAt(0) === "8"
+        ? [d.slice(0, 1), d.slice(1, 4), d.slice(4, 6), d.slice(6, 9)]
+        : [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)];
+      return parts.filter(Boolean).join(" ");
+    }
+
+    input.addEventListener("input", function () {
+      var v = input.value;
+      var t = v.trim();
+      if (t === "+" || t === "+4") { wrap.classList.remove("is-intl"); return; }
+      if (t.charAt(0) === "+" && t.indexOf("+46") !== 0) { wrap.classList.add("is-intl"); return; }
+      wrap.classList.remove("is-intl");
+      var caret = input.selectionStart == null ? v.length : input.selectionStart;
+      var digitsBefore = national(v.slice(0, caret)).length;
+      var formatted = group(national(v));
+      input.value = formatted;
+      var pos = 0, seen = 0;
+      while (pos < formatted.length && seen < digitsBefore) { if (/\d/.test(formatted.charAt(pos))) seen++; pos++; }
+      try { input.setSelectionRange(pos, pos); } catch (e) {}
+    });
+
+    return {
+      value: function () {
+        return wrap.classList.contains("is-intl") ? input.value.replace(/[^\d+]/g, "") : "+46" + national(input.value);
+      },
+      reset: function () { input.value = ""; wrap.classList.remove("is-intl"); },
+    };
+  }
+
   function createConfirmModal(apiBase, companyId, isLive) {
     var backdrop = document.getElementById("bdBackdrop");
     if (!backdrop) return null;
@@ -746,11 +801,7 @@
     }
     if (nameInput) nameInput.setAttribute("autocomplete", "given-name");
     if (lastNameInput) lastNameInput.setAttribute("autocomplete", "family-name");
-    if (phoneInput) {
-      phoneInput.setAttribute("autocomplete", "tel");
-      phoneInput.setAttribute("inputmode", "tel");
-      if (!phoneInput.placeholder) phoneInput.placeholder = "070-123 45 67";
-    }
+    var phone = phoneInput ? wirePhoneInput(phoneInput) : null;
     var formError = document.getElementById("bdError");
     if (!formError && confirmBtn) {
       formError = document.createElement("p");
@@ -772,10 +823,9 @@
     function validateForm() {
       var first = nameInput ? nameInput.value.trim() : "";
       var last = lastNameInput ? lastNameInput.value.trim() : "";
-      var phone = phoneInput ? phoneInput.value.trim() : "";
       if (!/\p{L}/u.test(first)) return { message: "Fyll i ditt förnamn.", input: nameInput };
       if (!/\p{L}/u.test(last)) return { message: "Fyll i ditt efternamn.", input: lastNameInput };
-      if (!isValidPhone(phone)) return { message: "Fyll i ett giltigt telefonnummer, t.ex. 070-123 45 67.", input: phoneInput };
+      if (!isValidPhone(phone ? phone.value() : "")) return { message: "Fyll i ett giltigt telefonnummer, t.ex. 70 123 45 67.", input: phoneInput };
       return null;
     }
 
@@ -787,7 +837,7 @@
       if (slotLine) slotLine.textContent = details.label;
       if (nameInput) nameInput.value = "";
       if (lastNameInput) lastNameInput.value = "";
-      if (phoneInput) phoneInput.value = "";
+      if (phone) phone.reset();
       showFormError("");
       if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = "Bekräfta bokning"; }
       backdrop.classList.add("is-open");
@@ -830,7 +880,7 @@
             serviceLabel: pending.serviceLabel || undefined,
             durationMinutes: pending.durationMinutes || undefined,
             customerName: (nameInput ? nameInput.value.trim() : "") + " " + (lastNameInput ? lastNameInput.value.trim() : ""),
-            customerPhone: phoneInput ? phoneInput.value.trim() : "",
+            customerPhone: phone ? phone.value() : "",
           }),
         })
           .then(function (r) { return r.json().then(function (body) { return { ok: r.ok, status: r.status, body: body }; }); })
