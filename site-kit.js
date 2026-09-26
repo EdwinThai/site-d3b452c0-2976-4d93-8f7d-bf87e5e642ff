@@ -482,7 +482,7 @@
     });
 
     if (closeBtn) closeBtn.addEventListener("click", close);
-    backdrop.addEventListener("click", function (e) { if (e.target === backdrop) close(); });
+    closeOnOutsideClick(backdrop, close);
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && backdrop.classList.contains("is-open")) close();
     });
@@ -693,6 +693,18 @@
    * #bdConfirm ever, regardless of which booking UI(s) exist on a given
    * page. Returns null if the page has no #bdBackdrop at all.
    */
+  /** Closes an overlay only when the press both started and ended on the
+   * backdrop itself; a press that starts inside the dialog and is released
+   * outside it (e.g. a slightly dragged click) no longer closes it. */
+  function closeOnOutsideClick(backdropEl, close) {
+    var pressedOnBackdrop = false;
+    backdropEl.addEventListener("pointerdown", function (e) { pressedOnBackdrop = e.target === backdropEl; });
+    backdropEl.addEventListener("click", function (e) {
+      if (e.target === backdropEl && pressedOnBackdrop) close();
+      pressedOnBackdrop = false;
+    });
+  }
+
   /** Swedish numbers (07x…, 08…, +46…/0046…) or any international +number.
    * Same rule as the server's check in bookings.ts. */
   function isValidPhone(raw) {
@@ -783,7 +795,7 @@
     function close() { backdrop.classList.remove("is-open"); }
 
     if (closeBtn) closeBtn.addEventListener("click", close);
-    backdrop.addEventListener("click", function (e) { if (e.target === backdrop) close(); });
+    closeOnOutsideClick(backdrop, close);
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && isOpen()) close(); });
 
     if (confirmBtn) {
@@ -1287,7 +1299,7 @@
     });
 
     if (closeBtn) closeBtn.addEventListener("click", closePopup);
-    popup.addEventListener("click", function (e) { if (e.target === popup) closePopup(); });
+    closeOnOutsideClick(popup, closePopup);
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && popup.classList.contains("is-open") && !confirmModal.isOpen()) closePopup();
     });
