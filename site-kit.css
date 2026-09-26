@@ -258,6 +258,11 @@
 }
 .bd-field input:focus { outline: none; border-color: var(--accent, #0f4c3d); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #0f4c3d) 14%, transparent); }
 .bd-field input[aria-invalid="true"] { border-color: #c2413a; }
+.bd-phone-wrap { display: flex; align-items: stretch; }
+.bd-phone-prefix { display: flex; align-items: center; padding: 0 0.7rem; border: 1px solid #d7dcda; border-right: 0; border-radius: 8px 0 0 8px; background: rgba(0, 0, 0, 0.035); font-size: 0.92rem; font-weight: 600; color: #16211c; font-variant-numeric: tabular-nums; }
+.bd-phone-wrap input { flex: 1; min-width: 0; border-radius: 0 8px 8px 0; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.bd-phone-wrap.is-intl .bd-phone-prefix { display: none; }
+.bd-phone-wrap.is-intl input { border-radius: 8px; }
 .bd-error { margin: -0.2rem 0 0.8rem; font-size: 0.8rem; color: #b3342d; }
 .bd-error[hidden] { display: none; }
 .bd-confirm-btn {
