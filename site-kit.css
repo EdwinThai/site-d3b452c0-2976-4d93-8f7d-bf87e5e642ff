@@ -257,6 +257,9 @@
   padding: 0.6rem 0.7rem; font-size: 0.92rem; font-family: inherit; color: #16211c;
 }
 .bd-field input:focus { outline: none; border-color: var(--accent, #0f4c3d); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #0f4c3d) 14%, transparent); }
+.bd-field input[aria-invalid="true"] { border-color: #c2413a; }
+.bd-error { margin: -0.2rem 0 0.8rem; font-size: 0.8rem; color: #b3342d; }
+.bd-error[hidden] { display: none; }
 .bd-confirm-btn {
   width: 100%; border: 0; border-radius: 8px;
   background: var(--accent, #0f4c3d); color: #fff;
