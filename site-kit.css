@@ -419,3 +419,72 @@
   .booking-widget-modal .booking-cal-slots .slot-btn { font-size: 0.64rem; padding: 0.3rem 0; letter-spacing: -0.02em; border-radius: 5px; }
   .booking-widget-modal .booking-cal-closed { font-size: 0.58rem; }
 }
+
+/* ============================================================
+ * Step-by-step booking flow (2026-09-27, see wireBookingFlow in
+ * site-kit.js): dark question bar with back arrow, progress bar, a
+ * summary that follows along, big tap targets per choice, and a pinned
+ * footer button. Colors come from each site's own tokens.
+ * ============================================================ */
+.booking-widget-modal.bf { display: flex; flex-direction: column; padding: 0; overflow: hidden; max-width: 720px; max-height: 94vh; }
+.bf-head { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; min-height: 56px; padding: 0 0.4rem; background: var(--ink, #2f2f2f); color: var(--paper, #fff); }
+.bf-title { margin: 0; text-align: center; font-family: inherit; font-size: 1.02rem; font-weight: 600; letter-spacing: 0; color: inherit; outline: none; }
+.bf-back, .bf-close { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: transparent; color: inherit; font-size: 1.4rem; line-height: 1; cursor: pointer; transition: background-color 160ms ease; }
+.bf-back:focus-visible, .bf-close:focus-visible { outline: 2px solid currentColor; outline-offset: -4px; }
+@media (hover: hover) and (pointer: fine) { .bf-back:hover, .bf-close:hover { background: rgba(255, 255, 255, 0.14); } }
+.bf-progress { height: 3px; background: var(--border, rgba(0, 0, 0, 0.08)); }
+.bf-progress span { display: block; height: 100%; width: 0; background: var(--accent-deep, var(--accent, #333)); transition: width 280ms cubic-bezier(0.23, 1, 0.32, 1); }
+.bf-summary { padding: 0.7rem 1.25rem; font-size: 0.84rem; background: color-mix(in srgb, var(--accent, #888) 8%, var(--paper, #fff)); border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.08)); }
+.bf-summary-service { display: flex; flex-wrap: wrap; gap: 0.2rem 0.6rem; align-items: baseline; }
+.bf-summary-service span { color: var(--ink-faint, #777); }
+.bf-summary-picks { margin-top: 0.15rem; color: var(--ink, inherit); font-weight: 500; }
+.bf-body { flex: 1 1 auto; overflow-y: auto; padding: 1.2rem 1.25rem 1.3rem; }
+.bf-body > * { animation: bf-in 240ms cubic-bezier(0.23, 1, 0.32, 1); }
+@keyframes bf-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.bf-foot { padding: 0.8rem 1.25rem 1rem; border-top: 1px solid var(--border, rgba(0, 0, 0, 0.08)); background: var(--paper, #fff); }
+.bf-foot[hidden] { display: none; }
+.bf-next { display: block; width: 100%; padding: 0.85rem; border: 0; border-radius: 999px; font: inherit; font-size: 0.95rem; font-weight: 600; background: var(--accent-deep, var(--accent, #333)); color: #fff; cursor: pointer; transition: filter 160ms ease, opacity 160ms ease; }
+.bf-next:disabled { opacity: 0.4; cursor: default; }
+@media (hover: hover) and (pointer: fine) { .bf-next:hover:not(:disabled) { filter: brightness(0.92); } }
+
+.bf-group + .bf-group { margin-top: 1.4rem; }
+.bf-group-title { margin: 0 0 0.15rem; font-family: inherit; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-deep, var(--accent, #333)); }
+.bf-hint { margin: 0 0 0.7rem; font-size: 0.82rem; font-style: italic; color: var(--ink-faint, #777); }
+.bf-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.6rem; }
+.bf-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.45rem; min-height: 112px; padding: 0.8rem 0.5rem; border: 1px solid var(--border, rgba(0, 0, 0, 0.14)); border-radius: 12px; background: var(--paper-raised, #fff); color: var(--ink, inherit); font: inherit; cursor: pointer; transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease; }
+.bf-tile:focus-visible { outline: 2px solid var(--accent-deep, var(--accent, #333)); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) { .bf-tile:hover { border-color: var(--accent-deep, var(--accent, #333)); } }
+.bf-tile[aria-pressed="true"] { border-color: var(--accent-deep, var(--accent, #333)); box-shadow: inset 0 0 0 1px var(--accent-deep, var(--accent, #333)); background: color-mix(in srgb, var(--accent, #888) 10%, var(--paper-raised, #fff)); }
+.bf-tile-icon { display: flex; color: var(--ink, inherit); }
+.bf-tile-label { font-size: 0.92rem; font-weight: 600; text-align: center; }
+.bf-tile-sub { margin-top: -0.3rem; font-size: 0.76rem; font-style: italic; color: var(--ink-faint, #777); text-align: center; }
+.bf-staff { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+.bf-staff .bf-hint { grid-column: 1 / -1; font-style: normal; }
+.bf-avatar { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; background: color-mix(in srgb, var(--accent-deep, var(--accent, #888)) 18%, var(--paper, #fff)); border: 1px solid color-mix(in srgb, var(--accent-deep, var(--accent, #888)) 35%, transparent); color: var(--accent-deep, var(--ink, inherit)); font-family: var(--font-head, inherit); font-size: 1.1rem; font-weight: 600; }
+.bf-avatar.is-any { background: transparent; border: 1.5px solid var(--accent-deep, var(--accent, #333)); color: var(--accent-deep, var(--accent, #333)); }
+
+.bf-recap { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem; margin: 0 0 1.2rem; padding: 0.9rem 1rem; border: 1px solid var(--border, rgba(0, 0, 0, 0.1)); border-radius: 12px; font-size: 0.88rem; }
+.bf-recap dt { color: var(--ink-faint, #777); }
+.bf-recap dd { margin: 0; font-weight: 600; }
+.bf-form .bd-field textarea { width: 100%; box-sizing: border-box; border: 1px solid #d7dcda; border-radius: 8px; padding: 0.6rem 0.7rem; font-size: 0.92rem; font-family: inherit; color: #16211c; resize: vertical; }
+.bf-form .bd-field label { color: var(--ink-faint, #5b625f); }
+
+.bf-done { text-align: center; padding: 1rem 0 0.5rem; }
+.bf-done-check { width: 56px; height: 56px; margin: 0 auto 0.9rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent-deep, var(--accent, #333)); color: #fff; font-size: 1.6rem; }
+.bf-done-title { margin: 0 0 0.4rem; font-family: var(--font-head, inherit); font-size: 1.3rem; }
+.bf-done-line { margin: 0.15rem 0; font-size: 0.95rem; }
+.bf-done-fine { margin-top: 0.8rem; font-size: 0.82rem; color: var(--ink-faint, #777); }
+
+@media (max-width: 620px) {
+  .booking-widget-modal.bf { max-height: 96vh; padding: 0; }
+  .bf-body { padding: 1rem 0.9rem 1.1rem; }
+  .bf-summary, .bf-foot { padding-left: 0.9rem; padding-right: 0.9rem; }
+  .bf-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bf-tiles.bf-tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bf-tiles-3 .bf-tile { min-height: 88px; padding: 0.6rem 0.3rem; }
+  .bf-tile { min-height: 96px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bf-body > * { animation: none; }
+  .bf-progress span { transition: none; }
+}
