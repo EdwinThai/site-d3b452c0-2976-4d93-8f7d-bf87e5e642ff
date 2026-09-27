@@ -1188,342 +1188,492 @@
   }
 
   // ============================================================
-  // Per-service booking popup (2026-09-10) — replaces the always-visible
-  // week grid with a "Boka" button on each price-list item. Clicking it
-  // opens a small popup: pick a specific frisör or "Nästa tillgängliga
-  // frisör" (system picks whoever has the earliest opening), hit "Sök
-  // tider", and THAT person's real, gap-fitting-aware availability appears
-  // — going forward from their first opening for this exact service. This
-  // is what a generated site's price list should use now; #bookingCal
-  // above stays only for sites generated before this existed.
+  // Step-by-step booking flow (2026-09-27), modeled on Voady: the site's
+  // price list stays as it is, and "Boka" on a service opens this popup,
+  // which asks one question per step (hair length/type, stylist, time,
+  // contact details) with a back arrow, a progress bar and a summary that
+  // follows along. It builds its own markup inside #bookingWidget's
+  // .booking-widget-modal, so already-generated sites pick it up on their
+  // next publish without their HTML changing.
   //
-  // Expected markup (see websiteAgent.ts's siteKitBlock()):
-  //   <div id="bookingWidget" class="booking-widget-backdrop" data-company-id="..." data-api-base="...">
-  //     <div class="booking-widget-modal">
-  //       <button id="bookingWidgetClose" class="booking-widget-close">&times;</button>
-  //       <div class="booking-widget-service">
-  //         <span id="bookingWidgetServiceName" class="booking-widget-service-name"></span>
-  //         <span id="bookingWidgetServiceMeta" class="booking-widget-service-meta"></span>
-  //       </div>
-  //       <div id="bookingWidgetStepStaff" class="booking-widget-step">
-  //         <label class="booking-widget-label" for="bookingWidgetStaffSelect">Välj frisör</label>
-  //         <select id="bookingWidgetStaffSelect" class="booking-widget-select"></select>
-  //         <button id="bookingWidgetSearchBtn" type="button" class="booking-widget-search-btn">Sök tider</button>
-  //       </div>
-  //       <div id="bookingWidgetStepTimes" class="booking-widget-step" hidden>
-  //         <button id="bookingWidgetBack" type="button" class="booking-widget-back">‹ Byt frisör</button>
-  //         <div class="booking-cal-head">
-  //           <button type="button" class="booking-cal-nav" data-dir="-1">‹</button>
-  //           <span id="bookingWidgetRange" class="booking-cal-range"></span>
-  //           <button type="button" class="booking-cal-nav" data-dir="1">›</button>
-  //         </div>
-  //         <div id="bookingWidgetGrid" class="booking-cal-grid"></div>
-  //         <div id="bookingWidgetNextAvail" class="booking-cal-next-available" style="display:none"></div>
-  //       </div>
-  //     </div>
-  //   </div>
-  // ...and every price-list "Boka" button:
-  //   <button class="price-item-book-btn" type="button"
-  //           data-service-name="Herrklippning" data-duration-minutes="30">Boka</button>
-  // (its nearest ancestor .price-item's .price-item-amount text is read for
-  // the price shown in the popup header — no extra data attribute needed.)
-  function wireBookingWidget(confirmModal) {
+  // #bookingWidget attributes: data-company-id, data-api-base,
+  // data-live="true" (real bookings; otherwise demo mode, see DEMO_STAFF),
+  // data-hair-step="false" (skip the hair length/type step).
+  // Price-list buttons: <button class="price-item-book-btn"
+  //   data-service-name="Herrklippning" data-duration-minutes="30">Boka</button>
+  // (the price is read from the nearest .price-item's .price-item-amount).
+  // ============================================================
+  var HAIR_LENGTHS = ["Kort", "Mellan", "Långt", "Extra långt"];
+  var HAIR_TYPES = ["Tunt", "Normalt", "Tjockt"];
+
+  function hairIcon(lengthIndex, strokeWidth) {
+    var side = [0, 25, 32, 38][lengthIndex];
+    var sides = side ? '<path d="M12.5 14V' + side + 'M27.5 14V' + side + '"/>' : "";
+    return '<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">' +
+      '<circle cx="20" cy="15" r="6.5" stroke-width="1.4"/>' +
+      '<path d="M8 38c1.2-7 6-10 12-10s10.8 3 12 10" stroke-width="1.4"/>' +
+      '<g stroke-width="' + strokeWidth + '"><path d="M12.5 15c0-6.5 3.4-9.5 7.5-9.5s7.5 3 7.5 9.5"/>' + sides + "</g></svg>";
+  }
+  var ANYONE_ICON = '<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">' +
+    '<circle cx="20" cy="14" r="5"/><path d="M11 31c1-5.5 4.5-8 9-8s8 2.5 9 8"/><circle cx="9" cy="17" r="3.5"/><path d="M3 30c.6-3.8 2.8-5.6 6-5.8"/>' +
+    '<circle cx="31" cy="17" r="3.5"/><path d="M37 30c-.6-3.8-2.8-5.6-6-5.8"/></svg>';
+  var BACK_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>';
+
+  function mk(tag, className, text) {
+    var e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+  function initials(name) {
+    var parts = String(name || "").trim().split(/\s+/);
+    if (parts.length > 1) return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    var one = parts[0] || "?";
+    return one.charAt(0).toUpperCase() + one.charAt(1).toLowerCase();
+  }
+  function fmtSlot(dateStr, time) {
+    var d = new Date(dateStr + "T00:00:00");
+    return WEEKDAY_SHORT[d.getDay()] + " " + d.getDate() + " " + MONTHS_SHORT[d.getMonth()] + " kl. " + time;
+  }
+
+  function wireBookingFlow() {
     var popup = document.getElementById("bookingWidget");
+    var modal = popup ? popup.querySelector(".booking-widget-modal") : null;
     var bookBtns = document.querySelectorAll(".price-item-book-btn");
-    if (!popup || !confirmModal || bookBtns.length === 0) return;
+    if (!popup || !modal || bookBtns.length === 0) return;
 
     var companyId = popup.getAttribute("data-company-id");
     var apiBase = popup.getAttribute("data-api-base") || "";
     var isLive = popup.getAttribute("data-live") === "true";
+    var useHairStep = popup.getAttribute("data-hair-step") !== "false";
 
-    var closeBtn = document.getElementById("bookingWidgetClose");
-    var stepStaff = document.getElementById("bookingWidgetStepStaff");
-    var stepTimes = document.getElementById("bookingWidgetStepTimes");
-    var staffSelect = document.getElementById("bookingWidgetStaffSelect");
-    var searchBtn = document.getElementById("bookingWidgetSearchBtn");
-    var backBtn = document.getElementById("bookingWidgetBack");
-    var serviceNameEl = document.getElementById("bookingWidgetServiceName");
-    var serviceMetaEl = document.getElementById("bookingWidgetServiceMeta");
-    var rangeLabel = document.getElementById("bookingWidgetRange");
-    var grid = document.getElementById("bookingWidgetGrid");
-    var nextAvailEl = document.getElementById("bookingWidgetNextAvail");
-    var navBtns = stepTimes ? stepTimes.querySelectorAll(".booking-cal-nav") : [];
-    if (!stepStaff || !stepTimes || !staffSelect || !searchBtn || !grid) return;
+    // ---- static frame ----
+    modal.innerHTML = "";
+    modal.classList.add("bf");
+    var head = mk("div", "bf-head");
+    var backBtn = mk("button", "bf-back");
+    backBtn.type = "button";
+    backBtn.setAttribute("aria-label", "Tillbaka");
+    backBtn.innerHTML = BACK_ICON;
+    var title = mk("h2", "bf-title");
+    title.tabIndex = -1;
+    var closeBtn = mk("button", "bf-close", "×");
+    closeBtn.type = "button";
+    closeBtn.setAttribute("aria-label", "Stäng");
+    head.appendChild(backBtn);
+    head.appendChild(title);
+    head.appendChild(closeBtn);
+    var progress = mk("div", "bf-progress");
+    var progressFill = mk("span");
+    progress.appendChild(progressFill);
+    var summary = mk("div", "bf-summary");
+    var body = mk("div", "bf-body");
+    var foot = mk("div", "bf-foot");
+    var nextBtn = mk("button", "bf-next");
+    nextBtn.type = "button";
+    foot.appendChild(nextBtn);
+    [head, progress, summary, body, foot].forEach(function (n) { modal.appendChild(n); });
 
-    var staffList = [];
-    var staffLoaded = false;
-    var currentService = null; // { name, durationMinutes, priceLabel }
-    var resolvedStaffId = null;
-    var weekOffset = 0;
+    // ---- state ----
+    var state = null;
+    var steps = [];
+    var stepIndex = 0;
+    var staffList = null; // null = not loaded yet
     var refreshTimer = null;
 
-    // Real gap found 2026-09-16: a freshly built site's booking widget has
-    // zero staff rows until the owner adds their team via the portal — the
-    // OLD behavior left the dropdown showing only "Nästa tillgängliga
-    // frisör" and let the visitor click all the way through to "Sök tider",
-    // which then 404'd against /next-available (bookings.ts refuses that
-    // endpoint with no staff at all) with no visible explanation. Looked
-    // exactly like "the booking button does nothing." Now caught up front:
-    // an empty staff list disables search and shows a clear, honest
-    // message instead of a silent dead end.
     function loadStaff() {
-      if (staffLoaded) return Promise.resolve();
-      if (!isLive) {
-        staffList = DEMO_STAFF;
-        staffSelect.innerHTML = "";
-        staffSelect.disabled = false;
-        var demoAnyOpt = document.createElement("option");
-        demoAnyOpt.value = "";
-        demoAnyOpt.textContent = "Nästa tillgängliga frisör";
-        staffSelect.appendChild(demoAnyOpt);
-        staffList.forEach(function (s) {
-          var opt = document.createElement("option");
-          opt.value = s.id;
-          opt.textContent = s.name + (s.title ? " — " + s.title : "");
-          staffSelect.appendChild(opt);
-        });
-        staffLoaded = true;
-        return Promise.resolve();
-      }
+      if (staffList) return Promise.resolve(staffList);
+      if (!isLive) { staffList = DEMO_STAFF; return Promise.resolve(staffList); }
       return fetch(apiBase + "/bookings/" + companyId + "/staff")
         .then(function (r) { return r.json(); })
-        .then(function (rows) {
-          staffList = rows || [];
-          staffSelect.innerHTML = "";
-          if (staffList.length === 0) {
-            var noStaffOpt = document.createElement("option");
-            noStaffOpt.value = "";
-            noStaffOpt.textContent = "Ingen personal upplagd ännu";
-            staffSelect.appendChild(noStaffOpt);
-            staffSelect.disabled = true;
-            searchBtn.disabled = true;
-            searchBtn.textContent = "Sök tider";
-            if (nextAvailEl) {
-              nextAvailEl.style.display = "";
-              nextAvailEl.textContent = "Bokning öppnar inom kort — hör av dig direkt till oss under tiden så hjälper vi dig hitta en tid.";
-            }
-            staffLoaded = true;
-            return;
-          }
-          staffSelect.disabled = false;
-          var anyOpt = document.createElement("option");
-          anyOpt.value = "";
-          anyOpt.textContent = "Nästa tillgängliga frisör";
-          staffSelect.appendChild(anyOpt);
-          staffList.forEach(function (s) {
-            var opt = document.createElement("option");
-            opt.value = s.id;
-            opt.textContent = s.name + (s.title ? " — " + s.title : "");
-            staffSelect.appendChild(opt);
-          });
-          staffLoaded = true;
-        })
-        .catch(function () {});
+        .then(function (rows) { staffList = Array.isArray(rows) ? rows : []; return staffList; })
+        .catch(function () { return null; });
     }
 
-    function openPopup(service) {
-      currentService = service;
-      resolvedStaffId = null;
-      weekOffset = 0;
-      if (serviceNameEl) serviceNameEl.textContent = service.name;
-      if (serviceMetaEl) serviceMetaEl.textContent = service.durationMinutes + " min" + (service.priceLabel ? " · " + service.priceLabel : "");
-      stepStaff.hidden = false;
-      stepTimes.hidden = true;
-      searchBtn.disabled = false;
-      searchBtn.textContent = "Sök tider";
+    function staffName(id) {
+      var s = (staffList || []).filter(function (x) { return x.id === id; })[0];
+      return s ? s.name : "";
+    }
+
+    function renderSummary() {
+      summary.innerHTML = "";
+      var svc = mk("div", "bf-summary-service");
+      svc.appendChild(mk("strong", null, state.service.name));
+      var meta = [state.service.durationMinutes + " min"];
+      if (state.service.priceLabel) meta.push(state.service.priceLabel);
+      svc.appendChild(mk("span", null, meta.join(" · ")));
+      summary.appendChild(svc);
+      var picks = [];
+      if (state.hairLength) picks.push(state.hairLength + " hår" + (state.hairType ? ", " + state.hairType.toLowerCase() : ""));
+      if (state.staff) picks.push(state.staff === "any" ? "Vem som helst" : state.staff.name);
+      if (state.slot) picks.push(fmtSlot(state.slot.dateStr, state.slot.time));
+      if (picks.length) summary.appendChild(mk("div", "bf-summary-picks", picks.join(" · ")));
+    }
+
+    function setFooter(label, enabled, onClick) {
+      foot.hidden = !label;
+      if (!label) return;
+      nextBtn.textContent = label;
+      nextBtn.disabled = !enabled;
+      nextBtn.onclick = onClick;
+    }
+
+    function goTo(index) {
+      stepIndex = Math.max(0, Math.min(index, steps.length - 1));
+      var step = steps[stepIndex];
+      backBtn.style.visibility = stepIndex === 0 || step === "done" ? "hidden" : "visible";
+      progressFill.style.width = Math.round(((stepIndex + 1) / steps.length) * 100) + "%";
+      body.innerHTML = "";
+      body.scrollTop = 0;
+      renderSummary();
+      if (step === "hair") renderHairStep();
+      else if (step === "staff") renderStaffStep();
+      else if (step === "time") renderTimeStep();
+      else if (step === "details") renderDetailsStep();
+      else renderDoneStep();
+      try { title.focus({ preventScroll: true }); } catch (e) {}
+    }
+    function next() { goTo(stepIndex + 1); }
+
+    // ---- step: hair length + type ----
+    function tileGroup(label, hint, options, current, iconFor, onPick) {
+      var group = mk("section", "bf-group");
+      group.appendChild(mk("h3", "bf-group-title", label));
+      if (hint) group.appendChild(mk("p", "bf-hint", hint));
+      var tiles = mk("div", "bf-tiles bf-tiles-" + options.length);
+      options.forEach(function (opt, i) {
+        var tile = mk("button", "bf-tile");
+        tile.type = "button";
+        tile.setAttribute("aria-pressed", String(opt === current));
+        var icon = mk("span", "bf-tile-icon");
+        icon.innerHTML = iconFor(i);
+        tile.appendChild(icon);
+        tile.appendChild(mk("span", "bf-tile-label", opt));
+        tile.addEventListener("click", function () { onPick(opt); });
+        tiles.appendChild(tile);
+      });
+      group.appendChild(tiles);
+      return group;
+    }
+    function renderHairStep() {
+      title.textContent = "Ange din hårlängd och hårtyp";
+      body.appendChild(tileGroup("Hårlängd", "Tvekar du mellan två längder? Välj den längre.", HAIR_LENGTHS, state.hairLength,
+        function (i) { return hairIcon(i, 1.4); },
+        function (v) { state.hairLength = v; goTo(stepIndex); }));
+      body.appendChild(tileGroup("Hårtyp", "Tvekar du mellan två? Välj den tjockare.", HAIR_TYPES, state.hairType,
+        function (i) { return hairIcon(1, [1, 1.8, 2.8][i]); },
+        function (v) { state.hairType = v; goTo(stepIndex); }));
+      setFooter("Gå vidare", !!(state.hairLength && state.hairType), next);
+    }
+
+    // ---- step: stylist ----
+    function renderStaffStep() {
+      title.textContent = "Välj frisör";
+      setFooter(null);
+      var holder = mk("div", "bf-tiles bf-staff");
+      body.appendChild(holder);
+      holder.appendChild(mk("p", "bf-hint", "Hämtar personal…"));
+      loadStaff().then(function (list) {
+        if (steps[stepIndex] !== "staff") return;
+        holder.innerHTML = "";
+        if (!list) { holder.appendChild(mk("p", "bf-hint", "Kunde inte nå bokningssystemet just nu. Försök igen om en stund.")); return; }
+        if (list.length === 0) { holder.appendChild(mk("p", "bf-hint", "Onlinebokningen öppnar inom kort. Hör av dig direkt till oss så hjälper vi dig hitta en tid.")); return; }
+        function staffTile(label, sub, avatarNode, value) {
+          var tile = mk("button", "bf-tile bf-staff-tile");
+          tile.type = "button";
+          tile.setAttribute("aria-pressed", String(state.staff === value || (state.staff && value && state.staff.id === value.id)));
+          tile.appendChild(avatarNode);
+          tile.appendChild(mk("span", "bf-tile-label", label));
+          if (sub) tile.appendChild(mk("span", "bf-tile-sub", sub));
+          tile.addEventListener("click", function () {
+            state.staff = value;
+            state.slot = null;
+            state.weekOffset = 0;
+            state.weekPicked = false;
+            next();
+          });
+          return tile;
+        }
+        if (list.length > 1) {
+          var anyAvatar = mk("span", "bf-avatar is-any");
+          anyAvatar.innerHTML = ANYONE_ICON;
+          holder.appendChild(staffTile("Vem som helst", "Första lediga tid", anyAvatar, "any"));
+        }
+        list.forEach(function (s) {
+          holder.appendChild(staffTile(s.name, s.title || "", mk("span", "bf-avatar", initials(s.name)), s));
+        });
+      });
+    }
+
+    // ---- step: time ----
+    function candidateStaff() {
+      return state.staff === "any" ? (staffList || []) : [state.staff];
+    }
+    function weekOffsetOf(dateStr) {
+      return Math.max(0, Math.round((new Date(dateStr + "T00:00:00") - startOfWeek(0)) / (7 * 24 * 60 * 60 * 1000)));
+    }
+    function firstFreeWeek() {
+      var duration = state.service.durationMinutes;
+      if (!isLive) {
+        var d = new Date();
+        for (var i = 0; i < 14; i++) {
+          var dateStr = isoDate(d);
+          if (candidateStaff().some(function (p) { return demoSlotsForDate(dateStr, p.id, duration).length > 0; })) return Promise.resolve(weekOffsetOf(dateStr));
+          d.setDate(d.getDate() + 1);
+        }
+        return Promise.resolve(0);
+      }
+      var staffParam = state.staff === "any" ? "" : "&staffId=" + state.staff.id;
+      return fetch(apiBase + "/bookings/" + companyId + "/next-available?durationMinutes=" + duration + staffParam)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (n) { return n && n.date ? weekOffsetOf(n.date) : 0; })
+        .catch(function () { return 0; });
+    }
+
+    function renderTimeStep() {
+      title.textContent = "Välj tid";
+      setFooter(null);
+      var calHead = mk("div", "booking-cal-head");
+      var prev = mk("button", "booking-cal-nav", "‹");
+      prev.type = "button";
+      prev.setAttribute("aria-label", "Föregående vecka");
+      var range = mk("span", "booking-cal-range");
+      var nxt = mk("button", "booking-cal-nav", "›");
+      nxt.type = "button";
+      nxt.setAttribute("aria-label", "Nästa vecka");
+      calHead.appendChild(prev);
+      calHead.appendChild(range);
+      calHead.appendChild(nxt);
+      var grid = mk("div", "booking-cal-grid");
+      var note = mk("p", "booking-cal-next-available");
+      note.hidden = true;
+      body.appendChild(calHead);
+      body.appendChild(grid);
+      body.appendChild(note);
+      prev.addEventListener("click", function () { if (state.weekOffset > 0) { state.weekOffset--; loadWeek(); } });
+      nxt.addEventListener("click", function () { state.weekOffset++; loadWeek(); });
+
+      function loadWeek() {
+        var monday = startOfWeek(state.weekOffset);
+        setRangeLabel(range, monday);
+        prev.disabled = state.weekOffset <= 0;
+        var days = [];
+        for (var i = 0; i < 7; i++) { var d = new Date(monday); d.setDate(d.getDate() + i); days.push(d); }
+        grid.classList.add("is-loading");
+        note.hidden = true;
+        var people = candidateStaff();
+        var duration = state.service.durationMinutes;
+        var jobs = [];
+        days.forEach(function (d) {
+          people.forEach(function (p) {
+            var dateStr = isoDate(d);
+            if (!isLive) {
+              jobs.push(Promise.resolve({ dateStr: dateStr, staffId: p.id, slots: demoSlotsForDate(dateStr, p.id, duration), closed: d.getDay() === 0 }));
+              return;
+            }
+            jobs.push(fetch(apiBase + "/bookings/" + companyId + "/availability?staffId=" + p.id + "&date=" + dateStr + "&durationMinutes=" + duration)
+              .then(function (r) { return r.json(); })
+              .then(function (res) { return { dateStr: dateStr, staffId: p.id, slots: res.slots || [], closed: !!res.closed }; })
+              .catch(function () { return { dateStr: dateStr, staffId: p.id, slots: [], closed: false }; }));
+          });
+        });
+        Promise.all(jobs).then(function (results) {
+          if (steps[stepIndex] !== "time") return;
+          var perDay = {};
+          var whoHas = {};
+          var closedCount = {};
+          results.forEach(function (r) {
+            perDay[r.dateStr] = perDay[r.dateStr] || [];
+            if (r.closed) closedCount[r.dateStr] = (closedCount[r.dateStr] || 0) + 1;
+            r.slots.forEach(function (t) {
+              var key = r.dateStr + "|" + t;
+              if (!whoHas[key]) { whoHas[key] = []; perDay[r.dateStr].push(t); }
+              whoHas[key].push(r.staffId);
+            });
+          });
+          var closedDays = {};
+          Object.keys(perDay).forEach(function (k) {
+            perDay[k].sort();
+            if (closedCount[k] === people.length) closedDays[k] = true;
+          });
+          var open = renderAvailabilityGrid(grid, days, perDay, function (dateStr, time) {
+            state.slot = { dateStr: dateStr, time: time, staffId: whoHas[dateStr + "|" + time][0] };
+            next();
+          }, closedDays);
+          grid.classList.remove("is-loading");
+          if (open === 0) {
+            note.hidden = false;
+            note.textContent = "Inga lediga tider den här veckan. ";
+            var jump = mk("button", "chip-link-btn", "Visa nästa vecka");
+            jump.type = "button";
+            jump.addEventListener("click", function () { state.weekOffset++; loadWeek(); });
+            note.appendChild(jump);
+          }
+        });
+      }
+      // Open on the week with the first free time, not an empty current week.
+      if (state.weekPicked) loadWeek();
+      else {
+        state.weekPicked = true;
+        firstFreeWeek().then(function (offset) { state.weekOffset = offset; if (steps[stepIndex] === "time") loadWeek(); });
+      }
+      clearInterval(refreshTimer);
+      refreshTimer = setInterval(function () {
+        if (popup.classList.contains("is-open") && steps[stepIndex] === "time" && document.visibilityState === "visible") loadWeek();
+      }, 15000);
+    }
+
+    // ---- step: contact details ----
+    function field(label, input) {
+      var f = mk("div", "bd-field");
+      var l = mk("label", null, label);
+      input.id = "bf-" + label.toLowerCase().replace(/[^a-zåäö]/g, "");
+      l.setAttribute("for", input.id);
+      f.appendChild(l);
+      f.appendChild(input);
+      return f;
+    }
+    function renderDetailsStep() {
+      title.textContent = "Dina uppgifter";
+      var staffLabel = state.slot && state.slot.staffId ? staffName(state.slot.staffId) : "";
+      var card = mk("dl", "bf-recap");
+      [
+        ["Tjänst", state.service.name + " · " + state.service.durationMinutes + " min" + (state.service.priceLabel ? " · " + state.service.priceLabel : "")],
+        ["Tid", fmtSlot(state.slot.dateStr, state.slot.time)],
+        ["Frisör", staffLabel],
+        ["Hår", state.hairLength ? state.hairLength + ", " + state.hairType.toLowerCase() : ""],
+      ].forEach(function (row) {
+        if (!row[1]) return;
+        card.appendChild(mk("dt", null, row[0]));
+        card.appendChild(mk("dd", null, row[1]));
+      });
+      body.appendChild(card);
+
+      var first = mk("input"); first.type = "text"; first.autocomplete = "given-name";
+      var last = mk("input"); last.type = "text"; last.autocomplete = "family-name";
+      var tel = mk("input"); tel.type = "tel";
+      var msg = mk("textarea"); msg.rows = 2; msg.maxLength = 300; msg.placeholder = "T.ex. önskemål eller allergier";
+      var form = mk("div", "bf-form");
+      form.appendChild(field("Förnamn", first));
+      form.appendChild(field("Efternamn", last));
+      form.appendChild(field("Telefonnummer", tel));
+      form.appendChild(field("Meddelande (valfritt)", msg));
+      var err = mk("p", "bd-error");
+      err.setAttribute("role", "alert");
+      err.hidden = true;
+      form.appendChild(err);
+      body.appendChild(form);
+      var phone = wirePhoneInput(tel);
+      [first, last, tel].forEach(function (i) { i.addEventListener("input", function () { if (i.hasAttribute("aria-invalid")) showErr(""); }); });
+      if (state.contact) { first.value = state.contact.first; last.value = state.contact.last; msg.value = state.contact.msg; }
+
+      function showErr(text, input) {
+        [first, last, tel].forEach(function (i) { i.removeAttribute("aria-invalid"); });
+        err.textContent = text || "";
+        err.hidden = !text;
+        if (input) { input.setAttribute("aria-invalid", "true"); input.focus(); }
+      }
+      setFooter("Bekräfta bokning", true, function () {
+        if (!/\p{L}/u.test(first.value)) return showErr("Fyll i ditt förnamn.", first);
+        if (!/\p{L}/u.test(last.value)) return showErr("Fyll i ditt efternamn.", last);
+        if (!isValidPhone(phone.value())) return showErr("Fyll i ett giltigt telefonnummer, t.ex. 70 123 45 67.", tel);
+        showErr("");
+        state.contact = { first: first.value.trim(), last: last.value.trim(), msg: msg.value.trim() };
+        var noteParts = [];
+        if (state.hairLength) noteParts.push("Hårlängd: " + state.hairLength + " · Hårtyp: " + state.hairType);
+        if (state.contact.msg) noteParts.push("Meddelande: " + state.contact.msg);
+        nextBtn.disabled = true;
+        nextBtn.textContent = "Bokar…";
+        if (!isLive) {
+          setTimeout(function () {
+            markDemoBooked(state.slot.dateStr, state.slot.time, state.slot.staffId, state.service.durationMinutes);
+            next();
+          }, 500);
+          return;
+        }
+        fetch(apiBase + "/bookings/" + companyId, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bookingDate: state.slot.dateStr,
+            timeLabel: state.slot.time,
+            staffId: state.slot.staffId || undefined,
+            serviceLabel: state.service.name,
+            durationMinutes: state.service.durationMinutes,
+            customerName: state.contact.first + " " + state.contact.last,
+            customerPhone: phone.value(),
+            customerNote: noteParts.join("\n") || undefined,
+          }),
+        })
+          .then(function (r) { return r.json().then(function (b) { return { ok: r.ok, status: r.status, body: b }; }); })
+          .then(function (res) {
+            if (res.ok) return next();
+            nextBtn.disabled = false;
+            nextBtn.textContent = "Bekräfta bokning";
+            if (res.status === 409) {
+              state.slot = null;
+              goTo(steps.indexOf("time"));
+              var taken = body.querySelector(".booking-cal-next-available");
+              if (taken) { taken.hidden = false; taken.textContent = "Tiden hann bokas av någon annan. Välj en ny tid."; }
+              return;
+            }
+            showErr(res.body.error || "Kunde inte boka den tiden.");
+          })
+          .catch(function () {
+            nextBtn.disabled = false;
+            nextBtn.textContent = "Bekräfta bokning";
+            showErr("Kunde inte nå bokningssystemet just nu.");
+          });
+      });
+      first.focus();
+    }
+
+    // ---- step: done ----
+    function renderDoneStep() {
+      title.textContent = "Klart!";
+      var done = mk("div", "bf-done");
+      var check = mk("div", "bf-done-check", "✓");
+      done.appendChild(check);
+      done.appendChild(mk("p", "bf-done-title", "Din tid är bokad"));
+      done.appendChild(mk("p", "bf-done-line", state.service.name + ", " + fmtSlot(state.slot.dateStr, state.slot.time)));
+      var who = staffName(state.slot.staffId);
+      if (who) done.appendChild(mk("p", "bf-done-line", "Hos " + who));
+      done.appendChild(mk("p", "bf-done-fine", "Vi ser fram emot ditt besök."));
+      body.appendChild(done);
+      setFooter("Stäng", true, close);
+    }
+
+    // ---- open / close ----
+    function open(service) {
+      state = { service: service, hairLength: null, hairType: null, staff: null, slot: null, weekOffset: 0, weekPicked: false, contact: null };
+      steps = (useHairStep ? ["hair"] : []).concat(["staff", "time", "details", "done"]);
       popup.classList.add("is-open");
       loadStaff();
+      goTo(0);
     }
-    function closePopup() { popup.classList.remove("is-open"); }
+    function close() {
+      popup.classList.remove("is-open");
+      clearInterval(refreshTimer);
+    }
+    backBtn.addEventListener("click", function () {
+      var step = steps[stepIndex];
+      if (step === "details") state.slot = null;
+      goTo(stepIndex - 1);
+    });
+    closeBtn.addEventListener("click", close);
+    closeOnOutsideClick(popup, close);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && popup.classList.contains("is-open")) close(); });
 
     bookBtns.forEach(function (btn) {
       btn.addEventListener("click", function () {
         var item = btn.closest(".price-item");
         var priceEl = item ? item.querySelector(".price-item-amount") : null;
-        openPopup({
+        open({
           name: btn.getAttribute("data-service-name") || "Tjänst",
           durationMinutes: parseInt(btn.getAttribute("data-duration-minutes"), 10) || 30,
           priceLabel: priceEl ? priceEl.textContent.trim() : "",
         });
       });
-    });
-
-    if (closeBtn) closeBtn.addEventListener("click", closePopup);
-    closeOnOutsideClick(popup, closePopup);
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && popup.classList.contains("is-open") && !confirmModal.isOpen()) closePopup();
-    });
-    if (backBtn) {
-      backBtn.addEventListener("click", function () {
-        stepTimes.hidden = true;
-        stepStaff.hidden = false;
-      });
-    }
-
-    function onPick(dateStr, timeLabel, btn) {
-      var d = new Date(dateStr + "T00:00:00");
-      // Real bug found 2026-09-17 while testing the full flow through to
-      // confirmation: the widget popup was never closed here, so it sat
-      // on top of #bdBackdrop (same fixed full-screen overlay layer) and
-      // silently intercepted every click meant for "Bekräfta bokning" —
-      // looked exactly like the confirm button did nothing.
-      closePopup();
-      confirmModal.open({
-        label: currentService.name + " — " + WEEKDAY_SHORT[d.getDay()] + " " + d.getDate() + " " + MONTHS_SHORT[d.getMonth()] + ", kl. " + timeLabel,
-        dateStr: dateStr,
-        timeLabel: timeLabel,
-        staffId: resolvedStaffId,
-        serviceLabel: currentService.name,
-        durationMinutes: currentService.durationMinutes,
-        btn: btn,
-        onDone: function (ok) {
-          if (!ok) {
-            popup.classList.add("is-open"); // failed booking — bring the calendar back so they can pick another time
-            render();
-          }
-        },
-      });
-    }
-
-    function showNextAvailable(fromDateStr) {
-      if (!nextAvailEl) return;
-      nextAvailEl.style.display = "";
-      nextAvailEl.innerHTML = "";
-      var link = document.createElement("button");
-      link.type = "button";
-      link.className = "chip-link-btn";
-      link.textContent = "Visa nästa lediga tid";
-      link.addEventListener("click", function () {
-        if (!isLive) {
-          var demoTarget = new Date(fromDateStr + "T00:00:00");
-          for (var i = 0; i < 8; i++) {
-            demoTarget.setDate(demoTarget.getDate() + 1);
-            if (demoSlotsForDate(isoDate(demoTarget), resolvedStaffId, currentService.durationMinutes).length > 0) break;
-          }
-          var demoMonday = startOfWeek(0);
-          weekOffset = Math.round((demoTarget - demoMonday) / (7 * 24 * 60 * 60 * 1000));
-          render();
-          return;
-        }
-        fetch(apiBase + "/bookings/" + companyId + "/next-available?staffId=" + resolvedStaffId + "&durationMinutes=" + currentService.durationMinutes + "&from=" + fromDateStr)
-          .then(function (r) { return r.ok ? r.json() : null; })
-          .then(function (next) {
-            if (!next) { nextAvailEl.textContent = "Ingen ledig tid hittades den närmaste tiden."; return; }
-            var target = new Date(next.date + "T00:00:00");
-            var monday = startOfWeek(0);
-            weekOffset = Math.round((target - monday) / (7 * 24 * 60 * 60 * 1000));
-            render();
-          });
-      });
-      nextAvailEl.appendChild(link);
-    }
-
-    function render() {
-      if (!resolvedStaffId) return;
-      var monday = startOfWeek(weekOffset);
-      setRangeLabel(rangeLabel, monday);
-      var days = [];
-      for (var i = 0; i < 7; i++) {
-        var d = new Date(monday);
-        d.setDate(d.getDate() + i);
-        days.push(d);
-      }
-      if (nextAvailEl) nextAvailEl.style.display = "none";
-      grid.classList.add("is-loading");
-      var duration = currentService.durationMinutes;
-      if (!isLive) {
-        var demoPerDay = {};
-        var demoClosed = {};
-        days.forEach(function (d) {
-          demoPerDay[isoDate(d)] = demoSlotsForDate(isoDate(d), resolvedStaffId, duration);
-          if (d.getDay() === 0) demoClosed[isoDate(d)] = true;
-        });
-        var demoOpenCount = renderAvailabilityGrid(grid, days, demoPerDay, onPick, demoClosed);
-        grid.classList.remove("is-loading");
-        if (demoOpenCount === 0) showNextAvailable(isoDate(days[6]));
-        return;
-      }
-      Promise.all(
-        days.map(function (d) {
-          var dateStr = isoDate(d);
-          return fetch(apiBase + "/bookings/" + companyId + "/availability?staffId=" + resolvedStaffId + "&date=" + dateStr + "&durationMinutes=" + duration)
-            .then(function (r) { return r.json(); })
-            .then(function (res) { return { dateStr: dateStr, slots: res.slots || [], closed: !!res.closed }; })
-            .catch(function () { return { dateStr: dateStr, slots: [] }; });
-        })
-      ).then(function (results) {
-        var perDay = {};
-        var closedDays = {};
-        results.forEach(function (r) { perDay[r.dateStr] = r.slots; if (r.closed) closedDays[r.dateStr] = true; });
-        var openCount = renderAvailabilityGrid(grid, days, perDay, onPick, closedDays);
-        grid.classList.remove("is-loading");
-        if (openCount === 0) showNextAvailable(isoDate(days[6]));
-      });
-    }
-
-    navBtns.forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        weekOffset += parseInt(btn.getAttribute("data-dir"), 10) || 0;
-        if (weekOffset < 0) weekOffset = 0; // never navigate into the past
-        render();
-      });
-    });
-
-    function resolveStaffAndShow() {
-      var duration = currentService.durationMinutes;
-      var chosen = staffSelect.value;
-      searchBtn.disabled = true;
-      searchBtn.textContent = "Söker…";
-      function restore() { searchBtn.disabled = false; searchBtn.textContent = "Sök tider"; }
-
-      if (chosen) {
-        resolvedStaffId = chosen;
-        weekOffset = 0;
-        restore();
-        stepStaff.hidden = true;
-        stepTimes.hidden = false;
-        render();
-        return;
-      }
-      if (!isLive) {
-        resolvedStaffId = DEMO_STAFF[0].id;
-        weekOffset = 0;
-        restore();
-        stepStaff.hidden = true;
-        stepTimes.hidden = false;
-        render();
-        return;
-      }
-      // "Nästa tillgängliga frisör" — resolve server-side across all staff.
-      fetch(apiBase + "/bookings/" + companyId + "/next-available?durationMinutes=" + duration)
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (next) {
-          restore();
-          if (!next) { alert("Ingen ledig tid hittades den närmaste tiden."); return; }
-          resolvedStaffId = next.staffId;
-          var target = new Date(next.date + "T00:00:00");
-          var monday = startOfWeek(0);
-          weekOffset = Math.round((target - monday) / (7 * 24 * 60 * 60 * 1000));
-          if (weekOffset < 0) weekOffset = 0;
-          stepStaff.hidden = true;
-          stepTimes.hidden = false;
-          render();
-        })
-        .catch(function () { restore(); alert("Kunde inte nå bokningssystemet just nu."); });
-    }
-    searchBtn.addEventListener("click", resolveStaffAndShow);
-
-    // Auto-refresh while the times step is open, same reasoning as the
-    // legacy calendar's — a reschedule made elsewhere (portal, another
-    // visitor) shouldn't leave a now-taken slot looking clickable here.
-    refreshTimer = setInterval(function () {
-      if (popup.classList.contains("is-open") && stepTimes.hidden === false && !confirmModal.isOpen()) render();
-    }, 8000);
-    document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible" && popup.classList.contains("is-open") && stepTimes.hidden === false && !confirmModal.isOpen()) render();
-    });
-    window.addEventListener("focus", function () {
-      if (popup.classList.contains("is-open") && stepTimes.hidden === false && !confirmModal.isOpen()) render();
     });
   }
 
@@ -1593,21 +1743,18 @@
     wireNextAvailable();
     wireBooking();
 
-    // Exactly one confirm-modal controller, shared by whichever booking
-    // UI/UIs are actually present on this page (see createConfirmModal's
-    // own comment for why that matters).
+    // The legacy always-visible calendar uses the shared #bdBackdrop confirm
+    // modal; the per-service popup has its own details step (wireBookingFlow).
     var calRoot = document.getElementById("bookingCal");
-    var popupRoot = document.getElementById("bookingWidget");
-    var bookingRoot = popupRoot || calRoot;
-    if (bookingRoot) {
+    if (calRoot) {
       var confirmModal = createConfirmModal(
-        bookingRoot.getAttribute("data-api-base") || "",
-        bookingRoot.getAttribute("data-company-id"),
-        bookingRoot.getAttribute("data-live") === "true"
+        calRoot.getAttribute("data-api-base") || "",
+        calRoot.getAttribute("data-company-id"),
+        calRoot.getAttribute("data-live") === "true"
       );
       wireBookingCalendar(confirmModal);
-      wireBookingWidget(confirmModal);
     }
+    wireBookingFlow();
 
     wireHeaderScrollState();
   }
