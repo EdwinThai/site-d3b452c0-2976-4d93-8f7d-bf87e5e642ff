@@ -448,7 +448,6 @@
 @media (hover: hover) and (pointer: fine) { .bf-next:hover:not(:disabled) { filter: brightness(0.92); } }
 
 .bf-group + .bf-group { margin-top: 1.4rem; }
-.bf-group-title { margin: 0 0 0.15rem; font-family: inherit; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-deep, var(--accent, #333)); }
 .bf-hint { margin: 0 0 0.7rem; font-size: 0.82rem; font-style: italic; color: var(--ink-faint, #777); }
 .bf-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.6rem; }
 .bf-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.45rem; min-height: 112px; padding: 0.8rem 0.5rem; border: 1px solid var(--border, rgba(0, 0, 0, 0.14)); border-radius: 12px; background: var(--paper-raised, #fff); color: var(--ink, inherit); font: inherit; cursor: pointer; transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease; }
@@ -461,7 +460,6 @@
 .bf-tile-desc { max-width: 24ch; font-size: 0.78rem; line-height: 1.4; text-align: center; color: color-mix(in srgb, var(--ink, #333) 72%, transparent); }
 .bf-tiles.bf-with-desc .bf-tile { justify-content: flex-start; padding: 0.9rem 0.7rem 1rem; }
 .bf-tile-desc + .bf-tile-desc { margin-top: -0.1rem; }
-.bf-group-question .bf-group-title { font-size: 0.98rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink, inherit); }
 .bf-tiles.bf-tiles-plain.bf-tiles-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .bf-tiles.bf-tiles-plain.bf-tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .bf-tiles.bf-tiles-plain .bf-tile { min-height: 0; padding: 0.8rem 0.5rem; }
@@ -504,4 +502,20 @@
 @media (prefers-reduced-motion: reduce) {
   .bf-body > * { animation: none; }
   .bf-progress span { transition: none; }
+}
+
+/* One question per step: "Fråga 1 av 3" above the options. */
+.bf-step-count { margin: 0 0 0.35rem; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-deep, var(--accent, #333)); }
+/* Hair-length figures: the hair in the accent, the body as a faint outline. */
+.bf-body-outline { opacity: 0.4; }
+.bf-hair { fill: var(--accent-deep, var(--accent, #333)); }
+.bf-hair-guide { stroke: var(--accent-deep, var(--accent, #333)); opacity: 0.7; }
+.bf-tiles-length .bf-tile { justify-content: flex-start; }
+.bf-tiles-length .bf-tile-icon svg { width: 62px; height: 93px; }
+@media (max-width: 620px) {
+  /* Keep the figures side by side (2 x 2) instead of the row layout other described tiles get. */
+  .bf-tiles.bf-tiles-length.bf-with-desc { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bf-tiles.bf-tiles-length.bf-with-desc .bf-tile { flex-direction: column; align-items: center; justify-content: flex-start; gap: 0.45rem; padding: 0.8rem 0.5rem 0.9rem; text-align: center; }
+  .bf-tiles-length.bf-with-desc .bf-tile-text { align-items: center; }
+  .bf-tiles-length.bf-with-desc .bf-tile-label, .bf-tiles-length.bf-with-desc .bf-tile-desc { text-align: center; }
 }
