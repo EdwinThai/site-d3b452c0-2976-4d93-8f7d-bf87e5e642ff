@@ -518,6 +518,7 @@
   // ============================================================
   var WEEKDAY_SHORT = ["Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"];
   var MONTHS_SHORT = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+  var MONTHS_LONG = ["Januari", "Februari", "Mars", "April", "Maj", "Juni", "Juli", "Augusti", "September", "Oktober", "November", "December"];
 
   function pad2(n) { return n < 10 ? "0" + n : "" + n; }
   function isoDate(d) { return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()); }
@@ -547,7 +548,8 @@
     return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
   }
 
-  /** "Vecka 40" as the headline with the date range under it. */
+  /** "Vecka 40" as the headline with the date range under it; the year is
+   * added once the week reaches into next year. */
   function setRangeLabel(el, monday) {
     if (!el) return;
     el.innerHTML = "";
@@ -556,7 +558,9 @@
     num.textContent = "Vecka " + isoWeekNumber(monday);
     var sub = document.createElement("span");
     sub.className = "wk-sub";
-    sub.textContent = fmtRange(monday);
+    var sunday = new Date(monday);
+    sunday.setDate(sunday.getDate() + 6);
+    sub.textContent = fmtRange(monday) + (sunday.getFullYear() !== new Date().getFullYear() ? " " + sunday.getFullYear() : "");
     el.appendChild(num);
     el.appendChild(sub);
   }
@@ -1205,8 +1209,8 @@
   //   data-service-name="Herrklippning" data-duration-minutes="30">Boka</button>
   // (the price is read from the nearest .price-item's .price-item-amount).
   // ============================================================
-  // Same limit as the server's BOOKING_HORIZON_DAYS (config/availability.ts).
-  var BOOKING_HORIZON_DAYS = 90;
+  // Same limit as the server's BOOKING_HORIZON_DAYS (config/availability.ts), about 6 months.
+  var BOOKING_HORIZON_DAYS = 183;
   var HAIR_LENGTHS = ["Kort", "Mellan", "Långt", "Extra långt"];
   var HAIR_TYPES = ["Tunt", "Normalt", "Tjockt"];
   // The ponytail rule of thumb stylists use; shown under each thickness.
@@ -1603,27 +1607,105 @@
       var prev = mk("button", "booking-cal-nav", "‹");
       prev.type = "button";
       prev.setAttribute("aria-label", "Föregående vecka");
-      var range = mk("span", "booking-cal-range");
+      // The week label is a button that opens a month/week picker below it.
+      var range = mk("button", "booking-cal-range bf-range-btn");
+      range.type = "button";
+      range.setAttribute("aria-haspopup", "true");
+      range.setAttribute("aria-expanded", "false");
+      range.title = "Välj vecka";
       var nxt = mk("button", "booking-cal-nav", "›");
       nxt.type = "button";
       nxt.setAttribute("aria-label", "Nästa vecka");
       calHead.appendChild(prev);
       calHead.appendChild(range);
       calHead.appendChild(nxt);
+      var picker = mk("div", "bf-weekpick");
+      picker.hidden = true;
       var grid = mk("div", "booking-cal-grid");
       var note = mk("p", "booking-cal-next-available");
       note.hidden = true;
       body.appendChild(calHead);
+      body.appendChild(picker);
       body.appendChild(grid);
       body.appendChild(note);
-      prev.addEventListener("click", function () { if (state.weekOffset > 0) { state.weekOffset--; loadWeek(); } });
-      nxt.addEventListener("click", function () { state.weekOffset++; loadWeek(); });
+      prev.addEventListener("click", function () { if (state.weekOffset > 0) { state.weekOffset--; closePicker(); loadWeek(); } });
+      nxt.addEventListener("click", function () { state.weekOffset++; closePicker(); loadWeek(); });
+      range.addEventListener("click", function () {
+        if (!picker.hidden) { closePicker(); return; }
+        var monday = startOfWeek(state.weekOffset);
+        renderPicker(new Date(monday.getFullYear(), monday.getMonth(), 1));
+        picker.hidden = false;
+        range.setAttribute("aria-expanded", "true");
+      });
+
+      function lastBookableDate() {
+        var d = new Date();
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + BOOKING_HORIZON_DAYS);
+        return d;
+      }
+      function closePicker() {
+        picker.hidden = true;
+        range.setAttribute("aria-expanded", "false");
+      }
+      // Month chips (this month up to the booking limit) above a calendar
+      // where each row is one week: pick a month, then a week.
+      function renderPicker(viewMonth) {
+        picker.innerHTML = "";
+        var thisWeek = startOfWeek(0);
+        var selected = startOfWeek(state.weekOffset);
+        var last = lastBookableDate();
+        var months = mk("div", "bf-wp-months");
+        var m = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        while (m <= last) {
+          (function (month) {
+            var chip = mk("button", "bf-wp-month", MONTHS_LONG[month.getMonth()].slice(0, 3));
+            chip.type = "button";
+            chip.setAttribute("aria-pressed", String(month.getTime() === viewMonth.getTime()));
+            chip.setAttribute("aria-label", MONTHS_LONG[month.getMonth()] + " " + month.getFullYear());
+            if (month.getFullYear() !== new Date().getFullYear()) chip.appendChild(mk("small", null, String(month.getFullYear())));
+            chip.addEventListener("click", function () { renderPicker(month); });
+            months.appendChild(chip);
+          })(new Date(m));
+          m.setMonth(m.getMonth() + 1);
+        }
+        picker.appendChild(months);
+        picker.appendChild(mk("p", "bf-wp-title", MONTHS_LONG[viewMonth.getMonth()] + " " + viewMonth.getFullYear()));
+        var head = mk("div", "bf-wp-row bf-wp-row-head");
+        ["v.", "Må", "Ti", "On", "To", "Fr", "Lö", "Sö"].forEach(function (t) { head.appendChild(mk("span", null, t)); });
+        picker.appendChild(head);
+        var lastOfMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 0);
+        var start = new Date(viewMonth);
+        start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+        while (start <= lastOfMonth) {
+          (function (monday) {
+            var offset = Math.round((monday - thisWeek) / (7 * 24 * 60 * 60 * 1000));
+            var row = mk("button", "bf-wp-row" + (monday.getTime() === selected.getTime() ? " is-selected" : ""));
+            row.type = "button";
+            row.disabled = offset < 0 || monday > last;
+            row.setAttribute("aria-label", "Vecka " + isoWeekNumber(monday) + ", " + fmtRange(monday));
+            row.appendChild(mk("span", "bf-wp-wk", String(isoWeekNumber(monday))));
+            for (var i = 0; i < 7; i++) {
+              var day = new Date(monday);
+              day.setDate(day.getDate() + i);
+              row.appendChild(mk("span", day.getMonth() !== viewMonth.getMonth() ? "is-out" : null, String(day.getDate())));
+            }
+            row.addEventListener("click", function () {
+              state.weekOffset = offset;
+              closePicker();
+              loadWeek();
+            });
+            picker.appendChild(row);
+          })(new Date(start));
+          start.setDate(start.getDate() + 7);
+        }
+      }
 
       function loadWeek() {
         var monday = startOfWeek(state.weekOffset);
         setRangeLabel(range, monday);
         prev.disabled = state.weekOffset <= 0;
-        var lastBookable = isoDate(new Date(new Date().setDate(new Date().getDate() + BOOKING_HORIZON_DAYS)));
+        var lastBookable = isoDate(lastBookableDate());
         var nextMonday = new Date(monday);
         nextMonday.setDate(nextMonday.getDate() + 7);
         nxt.disabled = isoDate(nextMonday) > lastBookable;
@@ -1687,11 +1769,16 @@
           grid.classList.remove("is-loading");
           if (open === 0) {
             note.hidden = false;
-            note.textContent = "Inga lediga tider den här veckan. ";
-            var jump = mk("button", "chip-link-btn", "Visa nästa vecka");
-            jump.type = "button";
-            jump.addEventListener("click", function () { state.weekOffset++; loadWeek(); });
-            note.appendChild(jump);
+            // Past the booking limit there is no next week to offer.
+            if (nxt.disabled) {
+              note.textContent = "Inga lediga tider den här veckan. Det går att boka upp till " + Math.round(BOOKING_HORIZON_DAYS / 30) + " månader fram.";
+            } else {
+              note.textContent = "Inga lediga tider den här veckan. ";
+              var jump = mk("button", "chip-link-btn", "Visa nästa vecka");
+              jump.type = "button";
+              jump.addEventListener("click", function () { state.weekOffset++; loadWeek(); });
+              note.appendChild(jump);
+            }
           }
         });
       }
