@@ -1246,19 +1246,43 @@
       '<g stroke-width="1.25">' + strands + '</g><g fill="currentColor" stroke="none">' + bands + "</g></svg>";
   }
 
-  function hairIcon(lengthIndex, strokeWidth) {
-    var side = [0, 25, 32, 38][lengthIndex];
-    var sides = side ? '<path d="M12.5 14V' + side + 'M27.5 14V' + side + '"/>' : "";
-    return '<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">' +
-      '<circle cx="20" cy="15" r="6.5" stroke-width="1.4"/>' +
-      '<path d="M8 38c1.2-7 6-10 12-10s10.8 3 12 10" stroke-width="1.4"/>' +
-      '<g stroke-width="' + strokeWidth + '"><path d="M12.5 15c0-6.5 3.4-9.5 7.5-9.5s7.5 3 7.5 9.5"/>' + sides + "</g></svg>";
+  // What each length means on the body, shown under the figure.
+  var HAIR_LENGTH_HELP = ["Ovanför axlarna", "Nuddar axlarna", "Nedanför axlarna, till bröstet", "Till mitten av ryggen eller längre"];
+
+  /** Front view of head, neck, shoulders and torso with the hair filled in,
+   * ending at the chin (0), shoulders (1), chest (2) or mid-back (3). A dashed
+   * line beside the body marks where the hair ends so the four compare at a
+   * glance. */
+  function hairIcon(lengthIndex) {
+    var endY = [31, 42, 60, 82][lengthIndex];
+    var flare = [0.5, 2, 4, 5][lengthIndex];
+    var width = [3.5, 5, 6.5, 7][lengthIndex];
+    var rOut = 41.5 + flare, rIn = rOut - width;
+    var lOut = 22.5 - flare, lIn = lOut + width;
+    function n(v) { return (Math.round(v * 10) / 10).toString(); }
+    var midY = n((25 + endY) / 2);
+    // Outer edges bow out slightly so the lengths read as hair, not stripes.
+    var hair = "M22.5 25C21.5 5 42.5 5 41.5 25" +
+      "Q" + n(rOut + 1.2) + " " + midY + " " + n(rOut) + " " + endY + "Q" + n(rOut - width / 2) + " " + (endY + 2.5) + " " + n(rIn) + " " + endY +
+      "L39.5 25C38 16 26 16 24.5 25" +
+      "L" + n(lIn) + " " + endY + "Q" + n(lOut + width / 2) + " " + (endY + 2.5) + " " + n(lOut) + " " + endY +
+      "Q" + n(lOut - 1.2) + " " + midY + " 22.5 25Z";
+    return '<svg viewBox="0 0 64 96" width="52" height="78" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<g class="bf-body-outline" stroke="currentColor" stroke-width="1.3">' +
+      '<ellipse cx="32" cy="22" rx="8.5" ry="10.5"/><path d="M28.5 31.5V37M35.5 31.5V37"/>' +
+      '<path d="M28.5 37C20 38 11 39.5 9.5 47V72M35.5 37C44 38 53 39.5 54.5 47V72"/>' +
+      // The torso fades out downwards so the eye stays on head and shoulders.
+      '<path d="M9.5 72V84M54.5 72V84" stroke-opacity="0.55"/><path d="M9.5 84V95M54.5 84V95" stroke-opacity="0.22"/></g>' +
+      '<path class="bf-hair" d="' + hair + '"/>' +
+      '<path class="bf-hair-guide" d="M2 ' + endY + "H" + n(lOut - 2) + "M" + n(rOut + 2) + " " + endY + 'H62" stroke-width="1.3" stroke-dasharray="2 2.5"/>' +
+      "</svg>";
   }
   // Questions the booking flow can ask before the stylist step. `label` is
   // the heading, `note` the short label saved on the booking for the stylist.
+  // Each question gets its own step; `title` (or else `label`) heads it.
   var QUESTIONS = {
-    hairLength: { label: "Hårlängd", note: "Hårlängd" },
-    hairThickness: { label: "Hårets tjocklek", note: "Tjocklek" },
+    hairLength: { label: "Hårlängd", title: "Hur långt är ditt hår?", note: "Hårlängd" },
+    hairThickness: { label: "Hårets tjocklek", title: "Hur tjockt är ditt hår?", note: "Tjocklek" },
     colorHistory: {
       label: "Har håret färgats de senaste 6 månaderna?", note: "Färgat senaste 6 mån",
       options: ["Nej", "Ja, hemma", "Ja, i salong"],
@@ -1418,7 +1442,7 @@
       body.innerHTML = "";
       body.scrollTop = 0;
       renderSummary();
-      if (step === "questions") renderQuestionsStep();
+      if (step.indexOf("q:") === 0) renderQuestionStep(step.slice(2));
       else if (step === "staff") renderStaffStep();
       else if (step === "time") renderTimeStep();
       else if (step === "details") renderDetailsStep();
@@ -1427,14 +1451,14 @@
     }
     function next() { goTo(stepIndex + 1); }
 
-    // ---- step: questions for this service ----
-    // Picking an answer updates the pressed state in place (no re-render),
-    // so answering a question further down doesn't jump back to the top.
-    function tileGroup(qid, label, hint, options, iconFor, descriptions) {
-      var group = mk("section", "bf-group" + (iconFor ? "" : " bf-group-question"));
-      group.appendChild(mk("h3", "bf-group-title", label));
+    // ---- steps: one question per step for this service ----
+    // Picking an answer marks it and moves on to the next step by itself;
+    // the back arrow returns with the earlier choice still marked.
+    function tileGroup(qid, hint, options, iconFor, descriptions, extraClass) {
+      var group = mk("section", "bf-group");
       if (hint) group.appendChild(mk("p", "bf-hint", hint));
-      var tiles = mk("div", "bf-tiles bf-tiles-" + options.length + (descriptions ? " bf-with-desc" : "") + (iconFor ? "" : " bf-tiles-plain"));
+      var tiles = mk("div", "bf-tiles bf-tiles-" + options.length + (descriptions ? " bf-with-desc" : "") +
+        (iconFor ? "" : " bf-tiles-plain") + (extraClass ? " " + extraClass : ""));
       options.forEach(function (opt, i) {
         var tile = mk("button", "bf-tile");
         tile.type = "button";
@@ -1462,39 +1486,42 @@
         group.querySelectorAll("button[aria-pressed]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
         btn.setAttribute("aria-pressed", "true");
         renderSummary();
-        updateQuestionsFooter();
+        updateQuestionFooter(qid);
+        // A short pause so the visitor sees what they picked before the next step.
+        var at = stepIndex;
+        setTimeout(function () { if (stepIndex === at && steps[at] === "q:" + qid) next(); }, 280);
       });
     }
-    function questionsAnswered() {
-      return state.profile.questions.every(function (qid) { return QUESTIONS[qid].optional || !!state.answers[qid]; });
+    function updateQuestionFooter(qid) {
+      var answered = !!state.answers[qid];
+      var optional = !!QUESTIONS[qid].optional;
+      setFooter(answered || !optional ? "Gå vidare" : "Hoppa över", answered || optional, next);
     }
-    function updateQuestionsFooter() { setFooter("Gå vidare", questionsAnswered(), next); }
 
-    function renderQuestionsStep() {
+    function renderQuestionStep(qid) {
+      var q = QUESTIONS[qid];
       var qs = state.profile.questions;
-      title.textContent = qs.length === 2 && qs[0] === "hairLength" && qs[1] === "hairThickness"
-        ? "Hur långt och tjockt är ditt hår?"
-        : "Några frågor inför besöket";
-      qs.forEach(function (qid) {
-        var q = QUESTIONS[qid];
-        var label = q.label + (q.optional ? " (valfritt)" : "");
-        if (qid === "hairLength") {
-          body.appendChild(tileGroup(qid, label, "Tvekar du mellan två längder? Välj den längre.", HAIR_LENGTHS,
-            function (i) { return hairIcon(i, 1.4); }));
-        } else if (qid === "hairThickness") {
-          var group = tileGroup(qid, label,
-            "Testa så här: sätt upp håret i en hästsvans och räkna hur många varv en vanlig hårsnodd går runt. Har du kort hår, titta på hur mycket av hårbotten som syns.",
-            HAIR_TYPES, thicknessIcon, HAIR_TYPE_HELP);
-          var unsure = mk("button", "bf-unsure", "Jag vet inte, frisören kollar när jag kommer");
-          unsure.type = "button";
-          answerButton(group, unsure, qid, HAIR_TYPE_UNSURE);
-          group.appendChild(unsure);
-          body.appendChild(group);
-        } else {
-          body.appendChild(tileGroup(qid, label, q.hint, q.options, null, null));
-        }
-      });
-      updateQuestionsFooter();
+      title.textContent = (q.title || q.label) + (q.optional ? " (valfritt)" : "");
+      if (qs.length > 1) body.appendChild(mk("p", "bf-step-count", "Fråga " + (qs.indexOf(qid) + 1) + " av " + qs.length));
+      if (qid === "hairLength") {
+        body.appendChild(tileGroup(qid, "Tvekar du mellan två längder? Välj den längre.", HAIR_LENGTHS,
+          hairIcon, HAIR_LENGTH_HELP, "bf-tiles-length"));
+      } else if (qid === "hairThickness") {
+        var group = tileGroup(qid,
+          "Testa så här: sätt upp håret i en hästsvans och räkna hur många varv en vanlig hårsnodd går runt. Har du kort hår, titta på hur mycket av hårbotten som syns.",
+          HAIR_TYPES, thicknessIcon, HAIR_TYPE_HELP);
+        var unsure = mk("button", "bf-unsure", "Jag vet inte, frisören kollar när jag kommer");
+        unsure.type = "button";
+        answerButton(group, unsure, qid, HAIR_TYPE_UNSURE);
+        group.appendChild(unsure);
+        body.appendChild(group);
+      } else if (qid === "wantedLength") {
+        // Axellångt / Bröstlångt / Midjelångt use the same figures as lengths 1-3.
+        body.appendChild(tileGroup(qid, q.hint, q.options, function (i) { return hairIcon(i + 1); }, null, "bf-tiles-length"));
+      } else {
+        body.appendChild(tileGroup(qid, q.hint, q.options, null, null));
+      }
+      updateQuestionFooter(qid);
     }
 
     // ---- step: stylist ----
@@ -1814,7 +1841,7 @@
     function open(service) {
       var profile = useHairStep ? profileFor(service.name) : { questions: [] };
       state = { service: service, profile: profile, answers: {}, staff: null, slot: null, weekOffset: 0, weekPicked: false, contact: null };
-      steps = (profile.questions.length ? ["questions"] : []).concat(["staff", "time", "details", "done"]);
+      steps = profile.questions.map(function (qid) { return "q:" + qid; }).concat(["staff", "time", "details", "done"]);
       popup.classList.add("is-open");
       loadStaff();
       goTo(0);
