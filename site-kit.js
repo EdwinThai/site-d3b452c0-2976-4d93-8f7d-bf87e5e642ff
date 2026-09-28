@@ -1206,27 +1206,40 @@
   var HAIR_LENGTHS = ["Kort", "Mellan", "Långt", "Extra långt"];
   var HAIR_TYPES = ["Tunt", "Normalt", "Tjockt"];
   // The ponytail rule of thumb stylists use; shown under each thickness.
+  var HAIR_TYPE_UNSURE = "Vet inte";
+  // Two self-tests a visitor can do right away: the hair-tie test stylists
+  // use (wraps around a ponytail), and scalp visibility for short hair.
   var HAIR_TYPE_HELP = [
-    "Fint och tunt hår. En hästsvans blir smal.",
-    "Varken tunt eller tjockt. En hästsvans blir mellantjock.",
-    "Mycket och kraftigt hår. En hästsvans blir tjock.",
+    ["Snodden går 3 varv eller fler", "Hårbotten syns lätt"],
+    ["Snodden går 2 varv", "Hårbotten syns lite i benan"],
+    ["Snodden går 1 varv", "Hårbotten syns knappt"],
   ];
 
-  /** A ponytail that gets wider and denser from thin (0) to thick (2). */
+  /** A ponytail held by a hair tie wrapped 3 (thin), 2 or 1 (thick) times;
+   * the bundle widens with thickness. */
   function thicknessIcon(level) {
+    var wraps = [3, 2, 1][level];
     var count = [3, 6, 10][level];
     var top = [1.6, 2.8, 4.2][level];
     var bottom = [4.5, 9, 14][level];
+    var tieTop = 5;
+    var bandH = 2.2;
+    var gap = 0.9;
+    var strandTop = tieTop + wraps * (bandH + gap);
+    var bands = "";
+    for (var w = 0; w < wraps; w++) {
+      bands += '<rect x="' + (20 - top - 1.6).toFixed(1) + '" y="' + (tieTop + w * (bandH + gap)).toFixed(1) +
+        '" width="' + (2 * top + 3.2).toFixed(1) + '" height="' + bandH + '" rx="1.1"/>';
+    }
     var strands = "";
     for (var i = 0; i < count; i++) {
       var t = count === 1 ? 0.5 : i / (count - 1);
       var x1 = (20 - top + 2 * top * t).toFixed(1);
       var x2 = (20 - bottom + 2 * bottom * t).toFixed(1);
-      strands += '<path d="M' + x1 + " 12C" + x1 + " 21 " + x2 + " 25 " + x2 + ' 36"/>';
+      strands += '<path d="M' + x1 + " " + strandTop + "C" + x1 + " " + (strandTop + 9) + " " + x2 + " 25 " + x2 + ' 36"/>';
     }
     return '<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">' +
-      '<g stroke-width="1.25">' + strands + "</g>" +
-      '<rect x="' + (20 - top - 1.8).toFixed(1) + '" y="7" width="' + (2 * top + 3.6).toFixed(1) + '" height="4.5" rx="2" stroke-width="1.5"/></svg>';
+      '<g stroke-width="1.25">' + strands + '</g><g fill="currentColor" stroke="none">' + bands + "</g></svg>";
   }
 
   function hairIcon(lengthIndex, strokeWidth) {
@@ -1327,7 +1340,7 @@
       svc.appendChild(mk("span", null, meta.join(" · ")));
       summary.appendChild(svc);
       var picks = [];
-      if (state.hairLength) picks.push("Hår: " + state.hairLength.toLowerCase() + (state.hairType ? ", " + state.hairType.toLowerCase() : ""));
+      if (state.hairLength) picks.push("Hår: " + state.hairLength.toLowerCase() + (state.hairType ? ", " + (state.hairType === HAIR_TYPE_UNSURE ? "tjocklek okänd" : state.hairType.toLowerCase()) : ""));
       if (state.staff) picks.push(state.staff === "any" ? "Vem som helst" : state.staff.name);
       if (state.slot) picks.push(fmtSlot(state.slot.dateStr, state.slot.time));
       if (picks.length) summary.appendChild(mk("div", "bf-summary-picks", picks.join(" · ")));
@@ -1373,7 +1386,9 @@
         tile.appendChild(icon);
         var text = mk("span", "bf-tile-text");
         text.appendChild(mk("span", "bf-tile-label", opt));
-        if (descriptions) text.appendChild(mk("span", "bf-tile-desc", descriptions[i]));
+        if (descriptions) {
+          [].concat(descriptions[i]).forEach(function (line) { text.appendChild(mk("span", "bf-tile-desc", line)); });
+        }
         tile.appendChild(text);
         tile.addEventListener("click", function () { onPick(opt); });
         tiles.appendChild(tile);
@@ -1386,10 +1401,18 @@
       body.appendChild(tileGroup("Hårlängd", "Tvekar du mellan två längder? Välj den längre.", HAIR_LENGTHS, state.hairLength,
         function (i) { return hairIcon(i, 1.4); },
         function (v) { state.hairLength = v; goTo(stepIndex); }));
-      body.appendChild(tileGroup("Hårets tjocklek", "Tänk på hur tjock en hästsvans blir av ditt hår. Tvekar du? Välj den tjockare.", HAIR_TYPES, state.hairType,
+      var thickness = tileGroup("Hårets tjocklek",
+        "Testa så här: sätt upp håret i en hästsvans och räkna hur många varv en vanlig hårsnodd går runt. Har du kort hår, titta på hur mycket av hårbotten som syns.",
+        HAIR_TYPES, state.hairType,
         thicknessIcon,
         function (v) { state.hairType = v; goTo(stepIndex); },
-        HAIR_TYPE_HELP));
+        HAIR_TYPE_HELP);
+      var unsure = mk("button", "bf-unsure", "Jag vet inte, frisören kollar när jag kommer");
+      unsure.type = "button";
+      unsure.setAttribute("aria-pressed", String(state.hairType === HAIR_TYPE_UNSURE));
+      unsure.addEventListener("click", function () { state.hairType = HAIR_TYPE_UNSURE; goTo(stepIndex); });
+      thickness.appendChild(unsure);
+      body.appendChild(thickness);
       setFooter("Gå vidare", !!(state.hairLength && state.hairType), next);
     }
 
@@ -1569,7 +1592,7 @@
         ["Tid", fmtSlot(state.slot.dateStr, state.slot.time)],
         ["Frisör", staffLabel],
         ["Hårlängd", state.hairLength || ""],
-        ["Tjocklek", state.hairType || ""],
+        ["Tjocklek", state.hairType === HAIR_TYPE_UNSURE ? "Vet inte, frisören kollar på plats" : state.hairType || ""],
       ].forEach(function (row) {
         if (!row[1]) return;
         card.appendChild(mk("dt", null, row[0]));
