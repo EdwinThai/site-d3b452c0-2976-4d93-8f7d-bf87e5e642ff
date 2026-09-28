@@ -513,7 +513,11 @@
 .bf-range-btn[aria-expanded="true"] { background: color-mix(in srgb, var(--accent, #888) 12%, transparent); }
 @media (hover: hover) and (pointer: fine) { .bf-range-btn:hover { background: color-mix(in srgb, var(--accent, #888) 10%, transparent); } }
 .bf-range-btn:focus-visible { outline: 2px solid var(--accent-deep, var(--accent, #333)); outline-offset: 2px; }
-.bf-weekpick { max-width: 360px; margin: -0.3rem auto 1rem; padding: 0.7rem; border: 1px solid var(--border, rgba(0, 0, 0, 0.12)); border-radius: 12px; background: var(--paper-raised, #fff); animation: bf-in 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+.bf .booking-cal-head { position: relative; }
+/* Floats over the calendar below the week label, like a dropdown. */
+.bf-weekpick { position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 5; width: min(360px, 100%); margin-inline: auto; padding: 0.7rem; box-sizing: border-box; border: 1px solid var(--border, rgba(0, 0, 0, 0.12)); border-radius: 12px; background: var(--paper-raised, var(--paper, #fff)); box-shadow: 0 18px 44px -14px rgba(0, 0, 0, 0.35); transform-origin: top center; animation: bf-pop 180ms cubic-bezier(0.23, 1, 0.32, 1); }
+@keyframes bf-pop { from { opacity: 0; transform: translateY(-4px) scale(0.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .bf-weekpick { animation: none; } }
 .bf-wp-months { display: grid; grid-template-columns: repeat(auto-fit, minmax(2.4rem, 1fr)); gap: 0.3rem; margin-bottom: 0.6rem; }
 .bf-wp-month { display: inline-flex; flex-direction: column; align-items: center; min-width: 0; padding: 0.35rem 0.2rem; justify-content: center; border: 1px solid var(--border, rgba(0, 0, 0, 0.14)); border-radius: 999px; background: transparent; color: var(--ink, inherit); font: inherit; font-size: 0.82rem; font-weight: 600; line-height: 1.1; cursor: pointer; transition: border-color 160ms ease, background-color 160ms ease; }
 .bf-wp-month small { font-size: 0.62rem; font-weight: 500; opacity: 0.7; }
