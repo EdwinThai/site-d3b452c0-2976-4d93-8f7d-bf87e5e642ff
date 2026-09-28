@@ -461,6 +461,10 @@
 .bf-tile-desc { max-width: 24ch; font-size: 0.78rem; line-height: 1.4; text-align: center; color: color-mix(in srgb, var(--ink, #333) 72%, transparent); }
 .bf-tiles.bf-with-desc .bf-tile { justify-content: flex-start; padding: 0.9rem 0.7rem 1rem; }
 .bf-tile-desc + .bf-tile-desc { margin-top: -0.1rem; }
+.bf-group-question .bf-group-title { font-size: 0.98rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink, inherit); }
+.bf-tiles.bf-tiles-plain.bf-tiles-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bf-tiles.bf-tiles-plain.bf-tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.bf-tiles.bf-tiles-plain .bf-tile { min-height: 0; padding: 0.8rem 0.5rem; }
 .bf-unsure { display: block; width: 100%; margin-top: 0.6rem; padding: 0.7rem 0.9rem; border: 1px dashed var(--border, rgba(0, 0, 0, 0.2)); border-radius: 12px; background: transparent; color: var(--ink, inherit); font: inherit; font-size: 0.86rem; text-align: center; cursor: pointer; transition: border-color 160ms ease, background-color 160ms ease; }
 .bf-unsure:focus-visible { outline: 2px solid var(--accent-deep, var(--accent, #333)); outline-offset: 2px; }
 @media (hover: hover) and (pointer: fine) { .bf-unsure:hover { border-color: var(--accent-deep, var(--accent, #333)); } }
