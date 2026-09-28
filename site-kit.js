@@ -1407,6 +1407,7 @@
     var stepIndex = 0;
     var staffList = null; // null = not loaded yet
     var refreshTimer = null;
+    var dismissPicker = null; // set while the time step's week picker is open
 
     function loadStaff() {
       if (staffList) return Promise.resolve(staffList);
@@ -1435,7 +1436,9 @@
       if (a.hairLength) picks.push("Hår: " + a.hairLength.toLowerCase() + (a.hairThickness ? ", " + (a.hairThickness === HAIR_TYPE_UNSURE ? "tjocklek okänd" : a.hairThickness.toLowerCase()) : ""));
       if (state.staff) picks.push(state.staff === "any" ? "Vem som helst" : state.staff.name);
       if (state.slot) picks.push(fmtSlot(state.slot.dateStr, state.slot.time));
-      if (picks.length) summary.appendChild(mk("div", "bf-summary-picks", picks.join(" · ")));
+      // Always two lines (an empty one to start with), so the first answer
+      // doesn't push the options down mid-click.
+      summary.appendChild(mk("div", "bf-summary-picks", picks.length ? picks.join(" · ") : " "));
     }
 
     function setFooter(label, enabled, onClick) {
@@ -1453,6 +1456,7 @@
       progressFill.style.width = Math.round(((stepIndex + 1) / steps.length) * 100) + "%";
       body.innerHTML = "";
       body.scrollTop = 0;
+      dismissPicker = null;
       renderSummary();
       if (step.indexOf("q:") === 0) renderQuestionStep(step.slice(2));
       else if (step === "staff") renderStaffStep();
@@ -1619,13 +1623,16 @@
       calHead.appendChild(prev);
       calHead.appendChild(range);
       calHead.appendChild(nxt);
+      // Floats over the calendar (positioned from the head) instead of pushing it down.
       var picker = mk("div", "bf-weekpick");
       picker.hidden = true;
+      picker.setAttribute("role", "dialog");
+      picker.setAttribute("aria-label", "Välj vecka");
+      calHead.appendChild(picker);
       var grid = mk("div", "booking-cal-grid");
       var note = mk("p", "booking-cal-next-available");
       note.hidden = true;
       body.appendChild(calHead);
-      body.appendChild(picker);
       body.appendChild(grid);
       body.appendChild(note);
       prev.addEventListener("click", function () { if (state.weekOffset > 0) { state.weekOffset--; closePicker(); loadWeek(); } });
@@ -1636,6 +1643,7 @@
         renderPicker(new Date(monday.getFullYear(), monday.getMonth(), 1));
         picker.hidden = false;
         range.setAttribute("aria-expanded", "true");
+        dismissPicker = closePicker;
       });
 
       function lastBookableDate() {
@@ -1647,6 +1655,7 @@
       function closePicker() {
         picker.hidden = true;
         range.setAttribute("aria-expanded", "false");
+        dismissPicker = null;
       }
       // Month chips (this month up to the booking limit) above a calendar
       // where each row is one week: pick a month, then a week.
@@ -1952,7 +1961,16 @@
     });
     closeBtn.addEventListener("click", close);
     closeOnOutsideClick(popup, close);
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && popup.classList.contains("is-open")) close(); });
+    // Escape and clicks elsewhere in the popup close an open week picker
+    // first; only a second Escape closes the whole popup.
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape" || !popup.classList.contains("is-open")) return;
+      if (dismissPicker) { dismissPicker(); return; }
+      close();
+    });
+    modal.addEventListener("mousedown", function (e) {
+      if (dismissPicker && !e.target.closest(".bf-weekpick, .bf-range-btn")) dismissPicker();
+    });
 
     bookBtns.forEach(function (btn) {
       btn.addEventListener("click", function () {
