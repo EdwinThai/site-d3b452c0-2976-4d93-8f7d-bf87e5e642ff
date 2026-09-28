@@ -1205,6 +1205,8 @@
   //   data-service-name="Herrklippning" data-duration-minutes="30">Boka</button>
   // (the price is read from the nearest .price-item's .price-item-amount).
   // ============================================================
+  // Same limit as the server's BOOKING_HORIZON_DAYS (config/availability.ts).
+  var BOOKING_HORIZON_DAYS = 90;
   var HAIR_LENGTHS = ["Kort", "Mellan", "Långt", "Extra långt"];
   var HAIR_TYPES = ["Tunt", "Normalt", "Tjockt"];
   // The ponytail rule of thumb stylists use; shown under each thickness.
@@ -1586,6 +1588,10 @@
         var monday = startOfWeek(state.weekOffset);
         setRangeLabel(range, monday);
         prev.disabled = state.weekOffset <= 0;
+        var lastBookable = isoDate(new Date(new Date().setDate(new Date().getDate() + BOOKING_HORIZON_DAYS)));
+        var nextMonday = new Date(monday);
+        nextMonday.setDate(nextMonday.getDate() + 7);
+        nxt.disabled = isoDate(nextMonday) > lastBookable;
         var days = [];
         for (var i = 0; i < 7; i++) { var d = new Date(monday); d.setDate(d.getDate() + i); days.push(d); }
         grid.classList.add("is-loading");
@@ -1596,6 +1602,10 @@
         days.forEach(function (d) {
           people.forEach(function (p) {
             var dateStr = isoDate(d);
+            if (dateStr > lastBookable) {
+              jobs.push(Promise.resolve({ dateStr: dateStr, staffId: p.id, slots: [], closed: false, tooFarAhead: true }));
+              return;
+            }
             if (!isLive) {
               jobs.push(Promise.resolve({ dateStr: dateStr, staffId: p.id, slots: demoSlotsForDate(dateStr, p.id, duration), closed: d.getDay() === 0 }));
               return;
@@ -1612,10 +1622,12 @@
           var whoHas = {};
           var closedCount = {};
           var offCount = {};
+          var tooFar = {};
           results.forEach(function (r) {
             perDay[r.dateStr] = perDay[r.dateStr] || [];
             if (r.closed) closedCount[r.dateStr] = (closedCount[r.dateStr] || 0) + 1;
             if (r.timeOff) offCount[r.dateStr] = (offCount[r.dateStr] || 0) + 1;
+            if (r.tooFarAhead) tooFar[r.dateStr] = true;
             r.slots.forEach(function (t) {
               var key = r.dateStr + "|" + t;
               if (!whoHas[key]) { whoHas[key] = []; perDay[r.dateStr].push(t); }
@@ -1631,6 +1643,7 @@
             var offN = offCount[k] || 0;
             if (closedN === people.length) closedDays[k] = true;
             else if (offN > 0 && closedN + offN === people.length) closedDays[k] = "Ej tillgänglig";
+            if (tooFar[k]) closedDays[k] = "Ej bokningsbar än";
           });
           var open = renderAvailabilityGrid(grid, days, perDay, function (dateStr, time) {
             state.slot = { dateStr: dateStr, time: time, staffId: whoHas[dateStr + "|" + time][0] };
