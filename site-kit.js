@@ -663,7 +663,8 @@
       if (slots.length === 0) {
         var full = document.createElement("span");
         full.className = "booking-cal-closed";
-        full.textContent = closedDays && closedDays[dateStr] ? "Stängt" : "Fullbokat";
+        var closedLabel = closedDays && closedDays[dateStr];
+        full.textContent = closedLabel ? (typeof closedLabel === "string" ? closedLabel : "Stängt") : "Fullbokat";
         slotsWrap.appendChild(full);
       } else {
         slots.forEach(function (time) {
@@ -1198,7 +1199,8 @@
   //
   // #bookingWidget attributes: data-company-id, data-api-base,
   // data-live="true" (real bookings; otherwise demo mode, see DEMO_STAFF),
-  // data-hair-step="false" (skip the hair length/type step).
+  // data-hair-step="false" (no hair questions, e.g. massage or nails).
+  // Which questions a service gets is decided by SERVICE_PROFILES below.
   // Price-list buttons: <button class="price-item-book-btn"
   //   data-service-name="Herrklippning" data-duration-minutes="30">Boka</button>
   // (the price is read from the nearest .price-item's .price-item-amount).
@@ -1250,6 +1252,57 @@
       '<path d="M8 38c1.2-7 6-10 12-10s10.8 3 12 10" stroke-width="1.4"/>' +
       '<g stroke-width="' + strokeWidth + '"><path d="M12.5 15c0-6.5 3.4-9.5 7.5-9.5s7.5 3 7.5 9.5"/>' + sides + "</g></svg>";
   }
+  // Questions the booking flow can ask before the stylist step. `label` is
+  // the heading, `note` the short label saved on the booking for the stylist.
+  var QUESTIONS = {
+    hairLength: { label: "Hårlängd", note: "Hårlängd" },
+    hairThickness: { label: "Hårets tjocklek", note: "Tjocklek" },
+    colorHistory: {
+      label: "Har håret färgats de senaste 6 månaderna?", note: "Färgat senaste 6 mån",
+      options: ["Nej", "Ja, hemma", "Ja, i salong"],
+      hint: "Tidigare färg påverkar vilken behandling och hur lång tid som behövs.",
+    },
+    firstColor: {
+      label: "Är det första gången du färgar håret hos oss?", note: "Första färgningen hos oss",
+      options: ["Ja", "Nej"],
+      hint: "Första gången kan vi behöva göra ett allergitest några dagar innan.",
+    },
+    currentExtensions: {
+      label: "Har du extensions i håret idag?", note: "Har extensions idag",
+      options: ["Nej", "Ja"],
+    },
+    wantedLength: {
+      label: "Hur långt vill du ha håret?", note: "Önskad längd",
+      options: ["Axellångt", "Bröstlångt", "Midjelångt"],
+    },
+    occasion: {
+      label: "Vad är tillfället?", note: "Tillfälle", optional: true,
+      options: ["Bröllop", "Fest", "Annat"],
+    },
+  };
+  // Which questions a service gets, matched on its name (first match wins).
+  // Quick men's/kids'/beard/fringe services skip the questions entirely.
+  var SERVICE_PROFILES = [
+    { match: /färg|farg|slinga|slingor|balayage|toning|blekning|highlight|ombre|nyans/i,
+      questions: ["hairLength", "hairThickness", "colorHistory", "firstColor"],
+      message: "T.ex. vilken färg eller nyans du vill ha" },
+    { match: /extension|löshår|loshar|hårförläng|harforlang/i,
+      questions: ["hairLength", "hairThickness", "currentExtensions", "wantedLength"],
+      message: "T.ex. vilken färg eller sorts extensions du tänkt dig" },
+    { match: /uppsättning|uppsattning|bröllop|brollop|brud|fest|styling|föning|foning|locka/i,
+      questions: ["hairLength", "occasion"],
+      message: "T.ex. tid för vigseln eller en bild på frisyren du vill ha" },
+    { match: /herr|barn|maskin|skägg|skagg|rakning|lugg|snagg|fade|barber|trimning/i,
+      questions: [] },
+    { match: /./, questions: ["hairLength", "hairThickness"] },
+  ];
+  function profileFor(serviceName) {
+    for (var i = 0; i < SERVICE_PROFILES.length; i++) {
+      if (SERVICE_PROFILES[i].match.test(serviceName)) return SERVICE_PROFILES[i];
+    }
+    return { questions: [] };
+  }
+
   var ANYONE_ICON = '<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">' +
     '<circle cx="20" cy="14" r="5"/><path d="M11 31c1-5.5 4.5-8 9-8s8 2.5 9 8"/><circle cx="9" cy="17" r="3.5"/><path d="M3 30c.6-3.8 2.8-5.6 6-5.8"/>' +
     '<circle cx="31" cy="17" r="3.5"/><path d="M37 30c-.6-3.8-2.8-5.6-6-5.8"/></svg>';
@@ -1340,7 +1393,8 @@
       svc.appendChild(mk("span", null, meta.join(" · ")));
       summary.appendChild(svc);
       var picks = [];
-      if (state.hairLength) picks.push("Hår: " + state.hairLength.toLowerCase() + (state.hairType ? ", " + (state.hairType === HAIR_TYPE_UNSURE ? "tjocklek okänd" : state.hairType.toLowerCase()) : ""));
+      var a = state.answers;
+      if (a.hairLength) picks.push("Hår: " + a.hairLength.toLowerCase() + (a.hairThickness ? ", " + (a.hairThickness === HAIR_TYPE_UNSURE ? "tjocklek okänd" : a.hairThickness.toLowerCase()) : ""));
       if (state.staff) picks.push(state.staff === "any" ? "Vem som helst" : state.staff.name);
       if (state.slot) picks.push(fmtSlot(state.slot.dateStr, state.slot.time));
       if (picks.length) summary.appendChild(mk("div", "bf-summary-picks", picks.join(" · ")));
@@ -1362,7 +1416,7 @@
       body.innerHTML = "";
       body.scrollTop = 0;
       renderSummary();
-      if (step === "hair") renderHairStep();
+      if (step === "questions") renderQuestionsStep();
       else if (step === "staff") renderStaffStep();
       else if (step === "time") renderTimeStep();
       else if (step === "details") renderDetailsStep();
@@ -1371,49 +1425,74 @@
     }
     function next() { goTo(stepIndex + 1); }
 
-    // ---- step: hair length + type ----
-    function tileGroup(label, hint, options, current, iconFor, onPick, descriptions) {
-      var group = mk("section", "bf-group");
+    // ---- step: questions for this service ----
+    // Picking an answer updates the pressed state in place (no re-render),
+    // so answering a question further down doesn't jump back to the top.
+    function tileGroup(qid, label, hint, options, iconFor, descriptions) {
+      var group = mk("section", "bf-group" + (iconFor ? "" : " bf-group-question"));
       group.appendChild(mk("h3", "bf-group-title", label));
       if (hint) group.appendChild(mk("p", "bf-hint", hint));
-      var tiles = mk("div", "bf-tiles bf-tiles-" + options.length + (descriptions ? " bf-with-desc" : ""));
+      var tiles = mk("div", "bf-tiles bf-tiles-" + options.length + (descriptions ? " bf-with-desc" : "") + (iconFor ? "" : " bf-tiles-plain"));
       options.forEach(function (opt, i) {
         var tile = mk("button", "bf-tile");
         tile.type = "button";
-        tile.setAttribute("aria-pressed", String(opt === current));
-        var icon = mk("span", "bf-tile-icon");
-        icon.innerHTML = iconFor(i);
-        tile.appendChild(icon);
+        if (iconFor) {
+          var icon = mk("span", "bf-tile-icon");
+          icon.innerHTML = iconFor(i);
+          tile.appendChild(icon);
+        }
         var text = mk("span", "bf-tile-text");
         text.appendChild(mk("span", "bf-tile-label", opt));
         if (descriptions) {
           [].concat(descriptions[i]).forEach(function (line) { text.appendChild(mk("span", "bf-tile-desc", line)); });
         }
         tile.appendChild(text);
-        tile.addEventListener("click", function () { onPick(opt); });
+        answerButton(group, tile, qid, opt);
         tiles.appendChild(tile);
       });
       group.appendChild(tiles);
       return group;
     }
-    function renderHairStep() {
-      title.textContent = "Hur långt och tjockt är ditt hår?";
-      body.appendChild(tileGroup("Hårlängd", "Tvekar du mellan två längder? Välj den längre.", HAIR_LENGTHS, state.hairLength,
-        function (i) { return hairIcon(i, 1.4); },
-        function (v) { state.hairLength = v; goTo(stepIndex); }));
-      var thickness = tileGroup("Hårets tjocklek",
-        "Testa så här: sätt upp håret i en hästsvans och räkna hur många varv en vanlig hårsnodd går runt. Har du kort hår, titta på hur mycket av hårbotten som syns.",
-        HAIR_TYPES, state.hairType,
-        thicknessIcon,
-        function (v) { state.hairType = v; goTo(stepIndex); },
-        HAIR_TYPE_HELP);
-      var unsure = mk("button", "bf-unsure", "Jag vet inte, frisören kollar när jag kommer");
-      unsure.type = "button";
-      unsure.setAttribute("aria-pressed", String(state.hairType === HAIR_TYPE_UNSURE));
-      unsure.addEventListener("click", function () { state.hairType = HAIR_TYPE_UNSURE; goTo(stepIndex); });
-      thickness.appendChild(unsure);
-      body.appendChild(thickness);
-      setFooter("Gå vidare", !!(state.hairLength && state.hairType), next);
+    function answerButton(group, btn, qid, value) {
+      btn.setAttribute("aria-pressed", String(state.answers[qid] === value));
+      btn.addEventListener("click", function () {
+        state.answers[qid] = value;
+        group.querySelectorAll("button[aria-pressed]").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+        btn.setAttribute("aria-pressed", "true");
+        renderSummary();
+        updateQuestionsFooter();
+      });
+    }
+    function questionsAnswered() {
+      return state.profile.questions.every(function (qid) { return QUESTIONS[qid].optional || !!state.answers[qid]; });
+    }
+    function updateQuestionsFooter() { setFooter("Gå vidare", questionsAnswered(), next); }
+
+    function renderQuestionsStep() {
+      var qs = state.profile.questions;
+      title.textContent = qs.length === 2 && qs[0] === "hairLength" && qs[1] === "hairThickness"
+        ? "Hur långt och tjockt är ditt hår?"
+        : "Några frågor inför besöket";
+      qs.forEach(function (qid) {
+        var q = QUESTIONS[qid];
+        var label = q.label + (q.optional ? " (valfritt)" : "");
+        if (qid === "hairLength") {
+          body.appendChild(tileGroup(qid, label, "Tvekar du mellan två längder? Välj den längre.", HAIR_LENGTHS,
+            function (i) { return hairIcon(i, 1.4); }));
+        } else if (qid === "hairThickness") {
+          var group = tileGroup(qid, label,
+            "Testa så här: sätt upp håret i en hästsvans och räkna hur många varv en vanlig hårsnodd går runt. Har du kort hår, titta på hur mycket av hårbotten som syns.",
+            HAIR_TYPES, thicknessIcon, HAIR_TYPE_HELP);
+          var unsure = mk("button", "bf-unsure", "Jag vet inte, frisören kollar när jag kommer");
+          unsure.type = "button";
+          answerButton(group, unsure, qid, HAIR_TYPE_UNSURE);
+          group.appendChild(unsure);
+          body.appendChild(group);
+        } else {
+          body.appendChild(tileGroup(qid, label, q.hint, q.options, null, null));
+        }
+      });
+      updateQuestionsFooter();
     }
 
     // ---- step: stylist ----
@@ -1523,7 +1602,7 @@
             }
             jobs.push(fetch(apiBase + "/bookings/" + companyId + "/availability?staffId=" + p.id + "&date=" + dateStr + "&durationMinutes=" + duration)
               .then(function (r) { return r.json(); })
-              .then(function (res) { return { dateStr: dateStr, staffId: p.id, slots: res.slots || [], closed: !!res.closed }; })
+              .then(function (res) { return { dateStr: dateStr, staffId: p.id, slots: res.slots || [], closed: !!res.closed, timeOff: !!res.timeOff }; })
               .catch(function () { return { dateStr: dateStr, staffId: p.id, slots: [], closed: false }; }));
           });
         });
@@ -1532,9 +1611,11 @@
           var perDay = {};
           var whoHas = {};
           var closedCount = {};
+          var offCount = {};
           results.forEach(function (r) {
             perDay[r.dateStr] = perDay[r.dateStr] || [];
             if (r.closed) closedCount[r.dateStr] = (closedCount[r.dateStr] || 0) + 1;
+            if (r.timeOff) offCount[r.dateStr] = (offCount[r.dateStr] || 0) + 1;
             r.slots.forEach(function (t) {
               var key = r.dateStr + "|" + t;
               if (!whoHas[key]) { whoHas[key] = []; perDay[r.dateStr].push(t); }
@@ -1544,7 +1625,12 @@
           var closedDays = {};
           Object.keys(perDay).forEach(function (k) {
             perDay[k].sort();
-            if (closedCount[k] === people.length) closedDays[k] = true;
+            // Everyone closed: "Stängt". Nobody available because someone is
+            // on time off (sick, vacation): "Ej tillgänglig", never "Fullbokat".
+            var closedN = closedCount[k] || 0;
+            var offN = offCount[k] || 0;
+            if (closedN === people.length) closedDays[k] = true;
+            else if (offN > 0 && closedN + offN === people.length) closedDays[k] = "Ej tillgänglig";
           });
           var open = renderAvailabilityGrid(grid, days, perDay, function (dateStr, time) {
             state.slot = { dateStr: dateStr, time: time, staffId: whoHas[dateStr + "|" + time][0] };
@@ -1591,9 +1677,11 @@
         ["Tjänst", state.service.name + " · " + state.service.durationMinutes + " min" + (state.service.priceLabel ? " · " + state.service.priceLabel : "")],
         ["Tid", fmtSlot(state.slot.dateStr, state.slot.time)],
         ["Frisör", staffLabel],
-        ["Hårlängd", state.hairLength || ""],
-        ["Tjocklek", state.hairType === HAIR_TYPE_UNSURE ? "Vet inte, frisören kollar på plats" : state.hairType || ""],
-      ].forEach(function (row) {
+      ].concat(state.profile.questions.map(function (qid) {
+        var v = state.answers[qid] || "";
+        if (qid === "hairThickness" && v === HAIR_TYPE_UNSURE) v = "Vet inte, frisören kollar på plats";
+        return [QUESTIONS[qid].note, v];
+      })).forEach(function (row) {
         if (!row[1]) return;
         card.appendChild(mk("dt", null, row[0]));
         card.appendChild(mk("dd", null, row[1]));
@@ -1603,7 +1691,7 @@
       var first = mk("input"); first.type = "text"; first.autocomplete = "given-name";
       var last = mk("input"); last.type = "text"; last.autocomplete = "family-name";
       var tel = mk("input"); tel.type = "tel";
-      var msg = mk("textarea"); msg.rows = 2; msg.maxLength = 300; msg.placeholder = "T.ex. önskemål eller allergier";
+      var msg = mk("textarea"); msg.rows = 2; msg.maxLength = 300; msg.placeholder = state.profile.message || "T.ex. önskemål eller allergier";
       var form = mk("div", "bf-form");
       form.appendChild(field("Förnamn", first));
       form.appendChild(field("Efternamn", last));
@@ -1630,8 +1718,16 @@
         if (!isValidPhone(phone.value())) return showErr("Fyll i ett giltigt telefonnummer, t.ex. 70 123 45 67.", tel);
         showErr("");
         state.contact = { first: first.value.trim(), last: last.value.trim(), msg: msg.value.trim() };
+        // One "Label: answer" per line, hair length + thickness together on
+        // the first; the free-text message always last (it may span lines).
         var noteParts = [];
-        if (state.hairLength) noteParts.push("Hårlängd: " + state.hairLength + " · Tjocklek: " + state.hairType);
+        var hairBits = ["hairLength", "hairThickness"].filter(function (qid) { return state.answers[qid]; })
+          .map(function (qid) { return QUESTIONS[qid].note + ": " + state.answers[qid]; });
+        if (hairBits.length) noteParts.push(hairBits.join(" · "));
+        state.profile.questions.forEach(function (qid) {
+          if (qid === "hairLength" || qid === "hairThickness" || !state.answers[qid]) return;
+          noteParts.push(QUESTIONS[qid].note + ": " + state.answers[qid]);
+        });
         if (state.contact.msg) noteParts.push("Meddelande: " + state.contact.msg);
         nextBtn.disabled = true;
         nextBtn.textContent = "Bokar…";
@@ -1696,8 +1792,9 @@
 
     // ---- open / close ----
     function open(service) {
-      state = { service: service, hairLength: null, hairType: null, staff: null, slot: null, weekOffset: 0, weekPicked: false, contact: null };
-      steps = (useHairStep ? ["hair"] : []).concat(["staff", "time", "details", "done"]);
+      var profile = useHairStep ? profileFor(service.name) : { questions: [] };
+      state = { service: service, profile: profile, answers: {}, staff: null, slot: null, weekOffset: 0, weekPicked: false, contact: null };
+      steps = (profile.questions.length ? ["questions"] : []).concat(["staff", "time", "details", "done"]);
       popup.classList.add("is-open");
       loadStaff();
       goTo(0);
