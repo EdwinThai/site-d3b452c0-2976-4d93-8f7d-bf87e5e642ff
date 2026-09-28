@@ -1249,24 +1249,32 @@
   // What each length means on the body, shown under the figure.
   var HAIR_LENGTH_HELP = ["Ovanför axlarna", "Nuddar axlarna", "Nedanför axlarna, till bröstet", "Till mitten av ryggen eller längre"];
 
-  /** Front view of head, neck, shoulders and torso with the hair filled in,
-   * ending at the chin (0), shoulders (1), chest (2) or mid-back (3). A dashed
-   * line beside the body marks where the hair ends so the four compare at a
+  /** Front view of head, neck, shoulders and torso with the hair filled in:
+   * a short crop that stays on the head (0), hair ending just above the
+   * shoulders (1), a little below them (2) or at mid-back (3). A dashed line
+   * beside the body marks where the hair ends so the four compare at a
    * glance. */
   function hairIcon(lengthIndex) {
-    var endY = [31, 42, 60, 82][lengthIndex];
-    var flare = [0.5, 2, 4, 5][lengthIndex];
-    var width = [3.5, 5, 6.5, 7][lengthIndex];
-    var rOut = 41.5 + flare, rIn = rOut - width;
-    var lOut = 22.5 - flare, lIn = lOut + width;
     function n(v) { return (Math.round(v * 10) / 10).toString(); }
-    var midY = n((25 + endY) / 2);
-    // Outer edges bow out slightly so the lengths read as hair, not stripes.
-    var hair = "M22.5 25C21.5 5 42.5 5 41.5 25" +
-      "Q" + n(rOut + 1.2) + " " + midY + " " + n(rOut) + " " + endY + "Q" + n(rOut - width / 2) + " " + (endY + 2.5) + " " + n(rIn) + " " + endY +
-      "L39.5 25C38 16 26 16 24.5 25" +
-      "L" + n(lIn) + " " + endY + "Q" + n(lOut + width / 2) + " " + (endY + 2.5) + " " + n(lOut) + " " + endY +
-      "Q" + n(lOut - 1.2) + " " + midY + " 22.5 25Z";
+    var endY, hair, lOut, rOut;
+    if (lengthIndex === 0) {
+      // Short crop: a cap on top of the head down to the temples, nothing hanging.
+      endY = 23; lOut = 23.2; rOut = 40.8;
+      hair = "M23.2 23C21.8 5.5 42.2 5.5 40.8 23L39.6 23C39.6 17.5 36 16.5 32 16.5C28 16.5 24.4 17.5 24.4 23Z";
+    } else {
+      endY = [0, 37, 52, 80][lengthIndex];
+      var flare = [0, 1.5, 3, 5][lengthIndex];
+      var width = [0, 4.5, 6, 7][lengthIndex];
+      rOut = 41.5 + flare; lOut = 22.5 - flare;
+      var rIn = rOut - width, lIn = lOut + width;
+      var midY = n((25 + endY) / 2);
+      // Outer edges bow out slightly so the lengths read as hair, not stripes.
+      hair = "M22.5 25C21.5 5 42.5 5 41.5 25" +
+        "Q" + n(rOut + 1.2) + " " + midY + " " + n(rOut) + " " + endY + "Q" + n(rOut - width / 2) + " " + (endY + 2.5) + " " + n(rIn) + " " + endY +
+        "L39.5 25C38 16 26 16 24.5 25" +
+        "L" + n(lIn) + " " + endY + "Q" + n(lOut + width / 2) + " " + (endY + 2.5) + " " + n(lOut) + " " + endY +
+        "Q" + n(lOut - 1.2) + " " + midY + " 22.5 25Z";
+    }
     return '<svg viewBox="0 0 64 96" width="52" height="78" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
       '<g class="bf-body-outline" stroke="currentColor" stroke-width="1.3">' +
       '<ellipse cx="32" cy="22" rx="8.5" ry="10.5"/><path d="M28.5 31.5V37M35.5 31.5V37"/>' +
