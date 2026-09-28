@@ -1205,6 +1205,29 @@
   // ============================================================
   var HAIR_LENGTHS = ["Kort", "Mellan", "Långt", "Extra långt"];
   var HAIR_TYPES = ["Tunt", "Normalt", "Tjockt"];
+  // The ponytail rule of thumb stylists use; shown under each thickness.
+  var HAIR_TYPE_HELP = [
+    "Fint och tunt hår. En hästsvans blir smal.",
+    "Varken tunt eller tjockt. En hästsvans blir mellantjock.",
+    "Mycket och kraftigt hår. En hästsvans blir tjock.",
+  ];
+
+  /** A ponytail that gets wider and denser from thin (0) to thick (2). */
+  function thicknessIcon(level) {
+    var count = [3, 6, 10][level];
+    var top = [1.6, 2.8, 4.2][level];
+    var bottom = [4.5, 9, 14][level];
+    var strands = "";
+    for (var i = 0; i < count; i++) {
+      var t = count === 1 ? 0.5 : i / (count - 1);
+      var x1 = (20 - top + 2 * top * t).toFixed(1);
+      var x2 = (20 - bottom + 2 * bottom * t).toFixed(1);
+      strands += '<path d="M' + x1 + " 12C" + x1 + " 21 " + x2 + " 25 " + x2 + ' 36"/>';
+    }
+    return '<svg viewBox="0 0 40 40" width="40" height="40" fill="none" stroke="currentColor" stroke-linecap="round" aria-hidden="true">' +
+      '<g stroke-width="1.25">' + strands + "</g>" +
+      '<rect x="' + (20 - top - 1.8).toFixed(1) + '" y="7" width="' + (2 * top + 3.6).toFixed(1) + '" height="4.5" rx="2" stroke-width="1.5"/></svg>';
+  }
 
   function hairIcon(lengthIndex, strokeWidth) {
     var side = [0, 25, 32, 38][lengthIndex];
@@ -1304,7 +1327,7 @@
       svc.appendChild(mk("span", null, meta.join(" · ")));
       summary.appendChild(svc);
       var picks = [];
-      if (state.hairLength) picks.push(state.hairLength + " hår" + (state.hairType ? ", " + state.hairType.toLowerCase() : ""));
+      if (state.hairLength) picks.push("Hår: " + state.hairLength.toLowerCase() + (state.hairType ? ", " + state.hairType.toLowerCase() : ""));
       if (state.staff) picks.push(state.staff === "any" ? "Vem som helst" : state.staff.name);
       if (state.slot) picks.push(fmtSlot(state.slot.dateStr, state.slot.time));
       if (picks.length) summary.appendChild(mk("div", "bf-summary-picks", picks.join(" · ")));
@@ -1336,11 +1359,11 @@
     function next() { goTo(stepIndex + 1); }
 
     // ---- step: hair length + type ----
-    function tileGroup(label, hint, options, current, iconFor, onPick) {
+    function tileGroup(label, hint, options, current, iconFor, onPick, descriptions) {
       var group = mk("section", "bf-group");
       group.appendChild(mk("h3", "bf-group-title", label));
       if (hint) group.appendChild(mk("p", "bf-hint", hint));
-      var tiles = mk("div", "bf-tiles bf-tiles-" + options.length);
+      var tiles = mk("div", "bf-tiles bf-tiles-" + options.length + (descriptions ? " bf-with-desc" : ""));
       options.forEach(function (opt, i) {
         var tile = mk("button", "bf-tile");
         tile.type = "button";
@@ -1348,7 +1371,10 @@
         var icon = mk("span", "bf-tile-icon");
         icon.innerHTML = iconFor(i);
         tile.appendChild(icon);
-        tile.appendChild(mk("span", "bf-tile-label", opt));
+        var text = mk("span", "bf-tile-text");
+        text.appendChild(mk("span", "bf-tile-label", opt));
+        if (descriptions) text.appendChild(mk("span", "bf-tile-desc", descriptions[i]));
+        tile.appendChild(text);
         tile.addEventListener("click", function () { onPick(opt); });
         tiles.appendChild(tile);
       });
@@ -1356,13 +1382,14 @@
       return group;
     }
     function renderHairStep() {
-      title.textContent = "Ange din hårlängd och hårtyp";
+      title.textContent = "Hur långt och tjockt är ditt hår?";
       body.appendChild(tileGroup("Hårlängd", "Tvekar du mellan två längder? Välj den längre.", HAIR_LENGTHS, state.hairLength,
         function (i) { return hairIcon(i, 1.4); },
         function (v) { state.hairLength = v; goTo(stepIndex); }));
-      body.appendChild(tileGroup("Hårtyp", "Tvekar du mellan två? Välj den tjockare.", HAIR_TYPES, state.hairType,
-        function (i) { return hairIcon(1, [1, 1.8, 2.8][i]); },
-        function (v) { state.hairType = v; goTo(stepIndex); }));
+      body.appendChild(tileGroup("Hårets tjocklek", "Tänk på hur tjock en hästsvans blir av ditt hår. Tvekar du? Välj den tjockare.", HAIR_TYPES, state.hairType,
+        thicknessIcon,
+        function (v) { state.hairType = v; goTo(stepIndex); },
+        HAIR_TYPE_HELP));
       setFooter("Gå vidare", !!(state.hairLength && state.hairType), next);
     }
 
@@ -1541,7 +1568,8 @@
         ["Tjänst", state.service.name + " · " + state.service.durationMinutes + " min" + (state.service.priceLabel ? " · " + state.service.priceLabel : "")],
         ["Tid", fmtSlot(state.slot.dateStr, state.slot.time)],
         ["Frisör", staffLabel],
-        ["Hår", state.hairLength ? state.hairLength + ", " + state.hairType.toLowerCase() : ""],
+        ["Hårlängd", state.hairLength || ""],
+        ["Tjocklek", state.hairType || ""],
       ].forEach(function (row) {
         if (!row[1]) return;
         card.appendChild(mk("dt", null, row[0]));
@@ -1580,7 +1608,7 @@
         showErr("");
         state.contact = { first: first.value.trim(), last: last.value.trim(), msg: msg.value.trim() };
         var noteParts = [];
-        if (state.hairLength) noteParts.push("Hårlängd: " + state.hairLength + " · Hårtyp: " + state.hairType);
+        if (state.hairLength) noteParts.push("Hårlängd: " + state.hairLength + " · Tjocklek: " + state.hairType);
         if (state.contact.msg) noteParts.push("Meddelande: " + state.contact.msg);
         nextBtn.disabled = true;
         nextBtn.textContent = "Bokar…";
