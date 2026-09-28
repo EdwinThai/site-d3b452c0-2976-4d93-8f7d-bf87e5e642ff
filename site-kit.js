@@ -1704,10 +1704,12 @@
       var first = mk("input"); first.type = "text"; first.autocomplete = "given-name";
       var last = mk("input"); last.type = "text"; last.autocomplete = "family-name";
       var tel = mk("input"); tel.type = "tel";
+      var mail = mk("input"); mail.type = "email"; mail.autocomplete = "email"; mail.placeholder = "namn@exempel.se";
       var msg = mk("textarea"); msg.rows = 2; msg.maxLength = 300; msg.placeholder = state.profile.message || "T.ex. önskemål eller allergier";
       var form = mk("div", "bf-form");
       form.appendChild(field("Förnamn", first));
       form.appendChild(field("Efternamn", last));
+      form.appendChild(field("E-post", mail));
       form.appendChild(field("Telefonnummer", tel));
       form.appendChild(field("Meddelande (valfritt)", msg));
       var err = mk("p", "bd-error");
@@ -1716,11 +1718,11 @@
       form.appendChild(err);
       body.appendChild(form);
       var phone = wirePhoneInput(tel);
-      [first, last, tel].forEach(function (i) { i.addEventListener("input", function () { if (i.hasAttribute("aria-invalid")) showErr(""); }); });
-      if (state.contact) { first.value = state.contact.first; last.value = state.contact.last; msg.value = state.contact.msg; }
+      [first, last, mail, tel].forEach(function (i) { i.addEventListener("input", function () { if (i.hasAttribute("aria-invalid")) showErr(""); }); });
+      if (state.contact) { first.value = state.contact.first; last.value = state.contact.last; mail.value = state.contact.email || ""; msg.value = state.contact.msg; }
 
       function showErr(text, input) {
-        [first, last, tel].forEach(function (i) { i.removeAttribute("aria-invalid"); });
+        [first, last, mail, tel].forEach(function (i) { i.removeAttribute("aria-invalid"); });
         err.textContent = text || "";
         err.hidden = !text;
         if (input) { input.setAttribute("aria-invalid", "true"); input.focus(); }
@@ -1728,9 +1730,10 @@
       setFooter("Bekräfta bokning", true, function () {
         if (!/\p{L}/u.test(first.value)) return showErr("Fyll i ditt förnamn.", first);
         if (!/\p{L}/u.test(last.value)) return showErr("Fyll i ditt efternamn.", last);
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail.value.trim())) return showErr("Fyll i din e-post, så skickar vi en bekräftelse.", mail);
         if (!isValidPhone(phone.value())) return showErr("Fyll i ett giltigt telefonnummer, t.ex. 70 123 45 67.", tel);
         showErr("");
-        state.contact = { first: first.value.trim(), last: last.value.trim(), msg: msg.value.trim() };
+        state.contact = { first: first.value.trim(), last: last.value.trim(), email: mail.value.trim(), msg: msg.value.trim() };
         // One "Label: answer" per line, hair length + thickness together on
         // the first; the free-text message always last (it may span lines).
         var noteParts = [];
@@ -1762,12 +1765,13 @@
             durationMinutes: state.service.durationMinutes,
             customerName: state.contact.first + " " + state.contact.last,
             customerPhone: phone.value(),
+            customerEmail: state.contact.email,
             customerNote: noteParts.join("\n") || undefined,
           }),
         })
           .then(function (r) { return r.json().then(function (b) { return { ok: r.ok, status: r.status, body: b }; }); })
           .then(function (res) {
-            if (res.ok) return next();
+            if (res.ok) { state.confirmationEmailSent = !!(res.body && res.body.confirmationEmailSent); return next(); }
             nextBtn.disabled = false;
             nextBtn.textContent = "Bekräfta bokning";
             if (res.status === 409) {
@@ -1798,6 +1802,9 @@
       done.appendChild(mk("p", "bf-done-line", state.service.name + ", " + fmtSlot(state.slot.dateStr, state.slot.time)));
       var who = staffName(state.slot.staffId);
       if (who) done.appendChild(mk("p", "bf-done-line", "Hos " + who));
+      if (state.confirmationEmailSent && state.contact && state.contact.email) {
+        done.appendChild(mk("p", "bf-done-fine", "Vi har skickat en bekräftelse till " + state.contact.email + ". Där kan du också avboka."));
+      }
       done.appendChild(mk("p", "bf-done-fine", "Vi ser fram emot ditt besök."));
       body.appendChild(done);
       setFooter("Stäng", true, close);
